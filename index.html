@@ -621,7 +621,7 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button class="btn btn-secondary" onclick="showTemplateModal()">📋 生成模板</button>
+                <button class="btn btn-secondary" onclick="showTemplateModal()">📋 生成规则模板</button>
                 <button class="btn btn-secondary" onclick="exportResults()" id="exportBtn" disabled>📤 导出结果</button>
             </div>
         </header>
@@ -641,7 +641,6 @@
                     <input type="file" id="mappingFile" accept=".xlsx,.xls" onchange="handleMappingUpload(this)">
                     <div class="upload-icon">🔗</div>
                     <div class="upload-label">ASIN Mapping</div>
-                    <div class="upload-hint">包含ASIN列的Excel</div>
                     <div class="upload-filename" id="mappingFilename"></div>
                     <button class="upload-remove" onclick="clearUpload('mapping')">✕</button>
                 </div>
