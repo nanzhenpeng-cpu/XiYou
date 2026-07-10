@@ -1398,6 +1398,7 @@
             });
         }
 
+        // 修改点：调整列顺序
         function applyTagsToKeywords(keywordsData, rules) {
             const result = keywordsData.map(row => ({ ...row }));
             
@@ -1478,7 +1479,56 @@
                 }
             }
 
-            return result;
+            // ============================================================
+            // 修改逻辑：重构返回的数据，强制关键列的顺序
+            // ============================================================
+            const finalResult = result.map(row => {
+                const orderedKeys = [];
+                const seen = new Set();
+
+                // 1. 关键词列
+                const kwCol = '关键词';
+                if (row.hasOwnProperty(kwCol)) {
+                    orderedKeys.push(kwCol);
+                    seen.add(kwCol);
+                }
+
+                // 2. 大分类与分组列
+                if (row.hasOwnProperty(catCol)) {
+                    orderedKeys.push(catCol);
+                    seen.add(catCol);
+                }
+                for (const gc of groupCols) {
+                    if (row.hasOwnProperty(gc)) {
+                        orderedKeys.push(gc);
+                        seen.add(gc);
+                    }
+                }
+
+                // 3. 标签列
+                for (const tag of tagOrder) {
+                    if (row.hasOwnProperty(tag) && !seen.has(tag)) {
+                        orderedKeys.push(tag);
+                        seen.add(tag);
+                    }
+                }
+
+                // 4. 其余列
+                for (const key of Object.keys(row)) {
+                    if (!seen.has(key)) {
+                        orderedKeys.push(key);
+                        seen.add(key);
+                    }
+                }
+
+                const newRow = {};
+                for (const key of orderedKeys) {
+                    newRow[key] = row[key] || '';
+                }
+                return newRow;
+            });
+            return finalResult;
+            // ============================================================
         }
 
         function showResultPreview() {
