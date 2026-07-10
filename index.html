@@ -15,62 +15,74 @@
         :root {
             --primary: #FF6A00;
             --primary-hover: #FF8533;
-            --bg: #F8F9FA;
-            --card-bg: #FFFFFF;
-            --text: #2D3436;
-            --text-muted: #636E72;
-            --border: #E8ECEF;
+            --primary-glow: rgba(255, 106, 0, 0.45);
+            --bg: #F6F7F9;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --text: #1A1F2B;
+            --text-muted: #676E7D;
+            --border: rgba(255, 255, 255, 0.3);
             --success: #00B894;
             --warning: #FDCB6E;
             --danger: #FF6B6B;
             --font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 10px 30px -8px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 48px -12px rgba(0, 0, 0, 0.12);
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         body {
             font-family: var(--font-family);
-            background-color: var(--bg);
+            background: radial-gradient(circle at 10% 20%, #FAFBFC 0%, #EEF2F7 100%);
             color: var(--text);
             min-height: 100vh;
             line-height: 1.6;
+            padding: 24px;
         }
 
         .app-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 0;
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             padding: 16px 0;
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
         }
 
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .logo {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, var(--primary) 0%, #FF8533 100%);
-            border-radius: 12px;
+            background: linear-gradient(135deg, #FF8533 0%, #FF6A00 100%);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 20px;
             font-weight: 700;
+            box-shadow: 0 8px 20px -6px rgba(255, 106, 0, 0.4);
         }
 
         .logo-text h1 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--text);
         }
@@ -85,45 +97,59 @@
             gap: 12px;
         }
 
+        /* ================= 高级悬浮按钮 ================= */
         .btn {
-            padding: 10px 20px;
-            border-radius: 10px;
+            padding: 10px 22px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid transparent;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            position: relative;
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, #FF9A44 0%, #FF6A00 100%);
             color: white;
+            box-shadow: 0 4px 16px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            background: linear-gradient(135deg, #FFAD5C 0%, #FF8533 100%);
+            box-shadow: 0 8px 28px rgba(255, 106, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border-color: rgba(255, 255, 255, 0.6);
         }
 
         .btn-primary:disabled {
             background: #FFD8B8;
+            box-shadow: none;
             cursor: not-allowed;
             transform: none;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .btn-secondary {
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             color: var(--text);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
         }
 
         .btn-secondary:hover {
-            background: #F1F3F5;
+            background: rgba(255, 255, 255, 0.95);
             border-color: var(--primary);
             color: var(--primary);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
         }
 
         .btn-ghost {
@@ -133,24 +159,28 @@
         }
 
         .btn-ghost:hover {
-            background: #F1F3F5;
+            background: rgba(255, 255, 255, 0.5);
             color: var(--text);
+            backdrop-filter: blur(4px);
         }
 
         .btn-icon {
             width: 40px;
             height: 40px;
             padding: 0;
-            border-radius: 10px;
+            border-radius: 12px;
             justify-content: center;
         }
+        /* ================================================== */
 
         .upload-card {
             background: var(--card-bg);
-            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
             padding: 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
         }
 
         .card-title {
@@ -169,6 +199,7 @@
             height: 16px;
             background: var(--primary);
             border-radius: 2px;
+            box-shadow: 0 0 8px var(--primary-glow);
         }
 
         .upload-grid {
@@ -178,23 +209,27 @@
         }
 
         .upload-item {
-            border: 2px dashed var(--border);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
             padding: 20px;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
         }
 
         .upload-item:hover {
             border-color: var(--primary);
-            background: #FFF9F5;
+            background: rgba(255, 106, 0, 0.06);
+            box-shadow: 0 4px 16px rgba(255, 106, 0, 0.08);
+            transform: translateY(-2px);
         }
 
         .upload-item.has-file {
-            border-style: solid;
             border-color: var(--success);
-            background: #F0FFF4;
+            background: rgba(0, 184, 148, 0.06);
         }
 
         .upload-item.optional {
@@ -214,7 +249,8 @@
             width: 40px;
             height: 40px;
             border-radius: 12px;
-            background: #F1F3F5;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -247,6 +283,7 @@
             margin-top: 8px;
             display: block;
             word-break: break-all;
+            font-weight: 500;
         }
 
         .upload-remove {
@@ -264,6 +301,11 @@
             display: none;
             align-items: center;
             justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .upload-remove:hover {
+            background: rgba(255, 107, 107, 0.2);
         }
 
         .upload-item.has-file:hover .upload-remove {
@@ -272,10 +314,12 @@
 
         .action-bar {
             background: var(--card-bg);
-            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
             padding: 16px 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -296,16 +340,18 @@
             gap: 8px;
             margin-bottom: 16px;
             background: var(--card-bg);
-            padding: 8px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            padding: 6px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(8px);
         }
 
         .tab-btn {
             padding: 10px 20px;
             border: none;
             background: transparent;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
             color: var(--text-muted);
@@ -314,12 +360,13 @@
         }
 
         .tab-btn.active {
-            background: var(--primary);
+            background: linear-gradient(135deg, #FF8533 0%, #FF6A00 100%);
             color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         .tab-btn:hover:not(.active) {
-            background: #F1F3F5;
+            background: rgba(255, 255, 255, 0.5);
             color: var(--text);
         }
 
@@ -333,14 +380,16 @@
 
         .table-container {
             background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
             overflow: hidden;
         }
 
         .table-header {
             padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -371,7 +420,7 @@
         }
 
         th {
-            background: #FAFBFC;
+            background: rgba(250, 251, 252, 0.7);
             padding: 12px 16px;
             text-align: left;
             font-weight: 600;
@@ -380,30 +429,22 @@
             position: sticky;
             top: 0;
             z-index: 1;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
         }
 
         td {
             padding: 10px 16px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.02);
             white-space: nowrap;
             color: var(--text);
         }
 
         tr:hover td {
-            background: #FAFBFC;
-        }
-
-        tr:nth-child(even) td {
-            background: #FDFEFE;
-        }
-
-        tr:nth-child(even):hover td {
-            background: #FAFBFC;
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .tag-cell {
-            background: rgba(255, 106, 0, 0.1);
+            background: rgba(255, 106, 0, 0.08);
             color: var(--primary);
             padding: 4px 10px;
             border-radius: 6px;
@@ -420,26 +461,14 @@
             margin-right: 6px;
         }
 
-        .status-ready {
-            background: var(--primary);
-        }
-
-        .status-processing {
-            background: var(--warning);
-            animation: pulse 1.5s infinite;
-        }
-
-        .status-success {
-            background: var(--success);
-        }
-
-        .status-error {
-            background: var(--danger);
-        }
+        .status-ready { background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+        .status-processing { background: var(--warning); animation: pulse 1.5s infinite; box-shadow: 0 0 8px var(--warning); }
+        .status-success { background: var(--success); }
+        .status-error { background: var(--danger); }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
         }
 
         .empty-state {
@@ -469,6 +498,7 @@
             position: fixed;
             inset: 0;
             background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -482,7 +512,7 @@
         .loading-spinner {
             width: 48px;
             height: 48px;
-            border: 4px solid var(--border);
+            border: 4px solid rgba(0, 0, 0, 0.05);
             border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -501,7 +531,8 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -518,12 +549,15 @@
 
         .modal {
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 24px;
             max-width: 500px;
             width: 90%;
             transform: scale(0.9);
-            transition: transform 0.2s ease;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
         }
 
         .modal-overlay.show .modal {
@@ -549,12 +583,13 @@
         }
 
         .template-preview {
-            background: #F8F9FA;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
             padding: 12px;
             margin-bottom: 16px;
             max-height: 300px;
             overflow-y: auto;
+            border: 1px solid var(--border);
         }
 
         .template-row {
@@ -562,7 +597,7 @@
             grid-template-columns: 80px 120px 100px 1fr;
             gap: 8px;
             padding: 6px 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
             font-size: 12px;
         }
 
@@ -606,6 +641,7 @@
             .btn {
                 flex: 1;
                 min-width: 120px;
+                justify-content: center;
             }
         }
     </style>
@@ -1398,7 +1434,9 @@
             });
         }
 
-        // 修改点：调整列顺序
+        // ============================================================
+        // 核心修复点：保留列顺序逻辑，确保"关键词"后面紧跟"大分类"和"分组1"
+        // ============================================================
         function applyTagsToKeywords(keywordsData, rules) {
             const result = keywordsData.map(row => ({ ...row }));
             
@@ -1479,21 +1517,19 @@
                 }
             }
 
-            // ============================================================
-            // 修改逻辑：重构返回的数据，强制关键列的顺序
-            // ============================================================
+            // ----------------- 此处重定义输出列的顺序 -----------------
             const finalResult = result.map(row => {
                 const orderedKeys = [];
                 const seen = new Set();
 
-                // 1. 关键词列
+                // 1. 首先是关键词列
                 const kwCol = '关键词';
                 if (row.hasOwnProperty(kwCol)) {
                     orderedKeys.push(kwCol);
                     seen.add(kwCol);
                 }
 
-                // 2. 大分类与分组列
+                // 2. 紧接着是：大分类 与 分组1,分组2...
                 if (row.hasOwnProperty(catCol)) {
                     orderedKeys.push(catCol);
                     seen.add(catCol);
@@ -1505,7 +1541,7 @@
                     }
                 }
 
-                // 3. 标签列
+                // 3. 然后是打标相关列
                 for (const tag of tagOrder) {
                     if (row.hasOwnProperty(tag) && !seen.has(tag)) {
                         orderedKeys.push(tag);
@@ -1513,7 +1549,7 @@
                     }
                 }
 
-                // 4. 其余列
+                // 4. 最后是其他所有散落/未定义的列
                 for (const key of Object.keys(row)) {
                     if (!seen.has(key)) {
                         orderedKeys.push(key);
@@ -1528,7 +1564,6 @@
                 return newRow;
             });
             return finalResult;
-            // ============================================================
         }
 
         function showResultPreview() {
