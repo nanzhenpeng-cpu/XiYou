@@ -392,6 +392,8 @@
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .table-header {
@@ -400,6 +402,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .table-title {
@@ -414,16 +417,23 @@
             margin-left: 12px;
         }
 
-        .table-wrapper {
+        .table-scroll {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrapper {
             max-height: 500px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
+            min-width: max-content;
             border-collapse: collapse;
             font-size: 13px;
+            table-layout: auto;
         }
 
         th {
@@ -742,30 +752,32 @@
                     <span class="table-title">打标规则</span>
                     <span class="table-info" id="rulesInfo">未加载规则</span>
                 </div>
-                <div class="table-wrapper">
-                    <table id="rulesTable">
-                        <thead>
-                            <tr>
-                                <th>优先级</th>
-                                <th>标签名称</th>
-                                <th>匹配模式</th>
-                                <th>关键词</th>
-                                <th>否定关键词</th>
-                                <th>忽略大小写</th>
-                                <th>输出值</th>
-                                <th>分类</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="8" class="empty-state">
-                                    <div class="empty-icon">📋</div>
-                                    <div class="empty-title">暂无规则</div>
-                                    <div class="empty-desc">请上传打标规则表或生成模板</div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="table-scroll">
+                    <div class="table-wrapper">
+                        <table id="rulesTable">
+                            <thead>
+                                <tr>
+                                    <th>优先级</th>
+                                    <th>标签名称</th>
+                                    <th>匹配模式</th>
+                                    <th>关键词</th>
+                                    <th>否定关键词</th>
+                                    <th>忽略大小写</th>
+                                    <th>输出值</th>
+                                    <th>分类</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="8" class="empty-state">
+                                        <div class="empty-icon">📋</div>
+                                        <div class="empty-title">暂无规则</div>
+                                        <div class="empty-desc">请上传打标规则表或生成模板</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -776,18 +788,20 @@
                     <span class="table-title">西柚数据预览</span>
                     <span class="table-info" id="xiyouInfo">尚未处理</span>
                 </div>
-                <div class="table-wrapper">
-                    <table id="xiyouTable">
-                        <tbody>
-                            <tr>
-                                <td colspan="4" class="empty-state">
-                                    <div class="empty-icon">📊</div>
-                                    <div class="empty-title">暂无数据</div>
-                                    <div class="empty-desc">请上传西柚数据和mapping表后开始处理</div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="table-scroll">
+                    <div class="table-wrapper">
+                        <table id="xiyouTable">
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <div class="empty-icon">📊</div>
+                                        <div class="empty-title">暂无数据</div>
+                                        <div class="empty-desc">请上传西柚数据和mapping表后开始处理</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -798,18 +812,20 @@
                     <span class="table-title">关键词打标预览</span>
                     <span class="table-info" id="keywordsInfo">尚未处理</span>
                 </div>
-                <div class="table-wrapper">
-                    <table id="keywordsTable">
-                        <tbody>
-                            <tr>
-                                <td colspan="4" class="empty-state">
-                                    <div class="empty-icon">🏷️</div>
-                                    <div class="empty-title">暂无数据</div>
-                                    <div class="empty-desc">请上传关键词数据表后开始处理</div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="table-scroll">
+                    <div class="table-wrapper">
+                        <table id="keywordsTable">
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <div class="empty-icon">🏷️</div>
+                                        <div class="empty-title">暂无数据</div>
+                                        <div class="empty-desc">请上传关键词数据表后开始处理</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -864,7 +880,7 @@
         };
 
         const FINAL_TAG_COLUMNS = [
-            '集合', '分类', 'screen protector', '品牌词', '竞品品牌',
+            '分类', 'screen protector', '品牌词', '竞品品牌',
             '机型', 'camera lens', 'privacy', 'glass', '否词'
         ];
 
@@ -899,12 +915,36 @@
         function handleKeywordsUpload(input) {
             if (input.files.length > 0) {
                 readExcel(input.files[0], (data) => {
-                    keywordsData = data;
+                    keywordsData = loadKeywordsData(data);
                     document.getElementById('keywordsItem').classList.add('has-file');
                     document.getElementById('keywordsFilename').textContent = input.files[0].name;
                     updateMode();
                 });
             }
+        }
+
+        function loadKeywordsData(data) {
+            if (!data || data.length === 0) return [];
+            const cols = Object.keys(data[0]);
+            let kwCol = null;
+            for (const col of cols) {
+                if (col === '关键词' || col.toLowerCase().includes('keyword') || col.includes('搜索词')) {
+                    kwCol = col;
+                    break;
+                }
+            }
+            if (!kwCol) kwCol = cols[0];
+
+            const seen = new Set();
+            const result = [];
+            for (const row of data) {
+                const kw = String(row[kwCol] || '').trim();
+                if (kw && !seen.has(kw)) {
+                    seen.add(kw);
+                    result.push({ '关键词': kw });
+                }
+            }
+            return result;
         }
 
         function handleRulesUpload(input) {
@@ -944,6 +984,50 @@
             reader.readAsArrayBuffer(file);
         }
 
+        function detectGroupColumns(cols) {
+            const levelMap = {};
+            for (const col of cols) {
+                const c = col.trim();
+                let m = c.match(/^分组值(\d*)$/);
+                if (m) {
+                    const suffix = m[1];
+                    const level = suffix ? parseInt(suffix) : 1;
+                    if (!(level in levelMap)) levelMap[level] = c;
+                    continue;
+                }
+                m = c.match(/^分组值\.(\d+)$/);
+                if (m) {
+                    const level = parseInt(m[1]) + 1;
+                    if (!(level in levelMap)) levelMap[level] = c;
+                    continue;
+                }
+                m = c.match(/^分组(\d+)$/);
+                if (m) {
+                    const level = parseInt(m[1]);
+                    if (!(level in levelMap)) levelMap[level] = c;
+                    continue;
+                }
+            }
+            return Object.keys(levelMap).sort((a, b) => parseInt(a) - parseInt(b)).map(k => levelMap[k]);
+        }
+
+        function normalizeGroupValues(gv) {
+            if (!gv) return [];
+            if (typeof gv === 'string') {
+                const s = gv.trim();
+                if (!s || s.toLowerCase() === 'nan' || s.toLowerCase() === 'none' || s.toLowerCase() === 'null' || s === '-') return [];
+                return [s];
+            }
+            const result = [];
+            for (const item of gv) {
+                if (item === null || item === undefined) continue;
+                const s = String(item).trim();
+                if (!s || s.toLowerCase() === 'nan' || s.toLowerCase() === 'none' || s.toLowerCase() === 'null' || s === '-') continue;
+                result.push(s);
+            }
+            return result;
+        }
+
         function loadRules(data) {
             const result = [];
             if (data.length === 0) return result;
@@ -955,6 +1039,8 @@
                 return [];
             }
 
+            const groupCols = detectGroupColumns(cols);
+
             for (const row of data) {
                 const tag = String(row['标签名称'] || '').trim();
                 const kw = String(row['关键词'] || '').trim();
@@ -965,18 +1051,26 @@
                 const negKeywords = splitKeywords(row['否定关键词'] || '', '包含任一');
                 const ignoreCase = parseBool(row['忽略大小写'] !== undefined ? row['忽略大小写'] : true);
                 const priority = parseInt(row['优先级']) || 9999;
-                const outputValue = String(row['输出值'] || '').trim();
-                const category = String(row['分类'] || '').trim();
-                const categoryPriority = parseInt(row['分类优先级']) || 9999;
-                const groupValues = [];
-                
-                let i = 1;
-                while (true) {
-                    const colName = i === 1 ? '分组值' : `分组值${i}`;
-                    const val = String(row[colName] || '').trim();
-                    if (!val || val.toLowerCase() === 'nan' || val.toLowerCase() === 'none') break;
-                    groupValues.push(val);
-                    i++;
+                let outputValue = String(row['输出值'] || '').trim();
+                if (outputValue.toLowerCase() === 'nan' || outputValue.toLowerCase() === 'none' || outputValue.toLowerCase() === 'null') outputValue = '';
+                let category = String(row['分类'] || '').trim();
+                if (category.toLowerCase() === 'nan' || category.toLowerCase() === 'none' || category.toLowerCase() === 'null' || category === '-') category = '';
+                let categoryPriority = 9999;
+                try {
+                    const cpRaw = String(row['分类优先级'] || '').trim();
+                    categoryPriority = cpRaw && cpRaw.toLowerCase() !== 'nan' && cpRaw.toLowerCase() !== 'none' ? parseInt(parseFloat(cpRaw)) : 9999;
+                } catch (e) {
+                    categoryPriority = 9999;
+                }
+
+                const gvList = [];
+                for (const gc of groupCols) {
+                    let val = String(row[gc] || '').trim();
+                    if (val.toLowerCase() === 'nan' || val.toLowerCase() === 'none' || val.toLowerCase() === 'null' || val === '-') val = '';
+                    gvList.push(val);
+                }
+                while (gvList.length > 0 && !gvList[gvList.length - 1]) {
+                    gvList.pop();
                 }
 
                 result.push({
@@ -990,11 +1084,16 @@
                     outputValue: outputValue,
                     category: category,
                     categoryPriority: categoryPriority,
-                    groupValues: groupValues
+                    groupValues: gvList
                 });
             }
 
-            result.sort((a, b) => a.priority - b.priority);
+            result.sort((a, b) => {
+                if (a.priority !== b.priority) return a.priority - b.priority;
+                const lenA = a.keywords.length > 0 ? a.keywords[0].length : 0;
+                const lenB = b.keywords.length > 0 ? b.keywords[0].length : 0;
+                return lenB - lenA;
+            });
             return result;
         }
 
@@ -1004,8 +1103,8 @@
                 '包含任一': ['or', 'OR', '或', '任一', 'any', '包含', '包含或'],
                 '包含全部': ['and', 'AND', '且', '全部', 'all', '必须全部包含', '同时包含'],
                 '精确等于': ['equals', '=', '等于', 'exact', '完全等于'],
-                '开头是': ['starts_with', 'startswith', 'prefix', '开头', '前缀'],
-                '结尾是': ['ends_with', 'endswith', 'suffix', '结尾', '后缀'],
+                '开头是': ['starts_with', 'startswith', 'prefix', '开头', '前缀', '以…开头', '以...开头'],
+                '结尾是': ['ends_with', 'endswith', 'suffix', '结尾', '后缀', '以…结尾', '以...结尾'],
                 '正则': ['regex', 'Regex', 'REGEX', '正则表达式', 'pattern'],
             };
 
@@ -1038,7 +1137,7 @@
         function parseBool(val) {
             if (typeof val === 'boolean') return val;
             const s = String(val || '').trim().toLowerCase();
-            return ['是', 'true', 'yes', 'y', '1', '忽略', 'ignore'].includes(s);
+            return ['是', 'true', 'yes', 'y', '1', '忽略', 'ignore', '忽略大小写'].includes(s);
         }
 
         function matchRule(rule, text) {
@@ -1195,6 +1294,8 @@
             const info = document.getElementById('rulesInfo');
 
             if (rules.length === 0) {
+                const thead = document.getElementById('rulesTable').querySelector('thead tr');
+                thead.innerHTML = `<th>优先级</th><th>标签名称</th><th>匹配模式</th><th>关键词</th><th>否定关键词</th><th>忽略大小写</th><th>输出值</th><th>分类</th>`;
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="8" class="empty-state">
@@ -1209,9 +1310,31 @@
             }
 
             const tagNames = [...new Set(rules.map(r => r.tagName))];
-            info.textContent = `共 ${rules.length} 条规则，输出 ${tagNames.length} 列`;
+            let maxGv = Math.max(...rules.map(r => r.groupValues.length), 0);
+            if (maxGv < 1) maxGv = 1;
+            const groupColNames = [];
+            for (let i = 0; i < maxGv; i++) {
+                groupColNames.push(i === 0 ? '分组值' : `分组值${i + 1}`);
+            }
+            const baseCols = 8;
+            const totalCols = baseCols + groupColNames.length;
+            info.textContent = `共 ${rules.length} 条规则，输出 ${tagNames.length} 列${maxGv > 0 ? '，' + maxGv + '级分组' : ''}`;
 
-            tbody.innerHTML = rules.map((r, i) => `
+            // 更新表头
+            const thead = document.getElementById('rulesTable').querySelector('thead tr');
+            let headerHtml = `<th>优先级</th><th>标签名称</th><th>匹配模式</th><th>关键词</th><th>否定关键词</th><th>忽略大小写</th><th>输出值</th><th>分类</th>`;
+            for (const gc of groupColNames) {
+                headerHtml += `<th>${gc}</th>`;
+            }
+            thead.innerHTML = headerHtml;
+
+            tbody.innerHTML = rules.map((r, i) => {
+                let gvCells = '';
+                for (let gi = 0; gi < groupColNames.length; gi++) {
+                    const val = gi < r.groupValues.length && r.groupValues[gi] ? r.groupValues[gi] : '-';
+                    gvCells += `<td>${val}</td>`;
+                }
+                return `
                 <tr>
                     <td>${r.priority}</td>
                     <td>${r.tagName}</td>
@@ -1221,8 +1344,9 @@
                     <td>${r.ignoreCase ? '是' : '否'}</td>
                     <td>${r.outputValue || '-'}</td>
                     <td>${r.category || '-'}</td>
+                    ${gvCells}
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         async function startProcessing() {
@@ -1245,10 +1369,10 @@
                     const cleaned = cleanXiyouData(rawData, mappingData);
                     
                     document.getElementById('loadingText').textContent = '正在打标...';
-                    const tagged = applyTagsForXiyou(cleaned, rules);
+                    const taggedResult = applyTagsForXiyou(cleaned, rules);
                     
-                    cleanedResult = tagged;
-                    tagResult = createTagSheet(tagged);
+                    cleanedResult = taggedResult.data;
+                    tagResult = createTagSheet(taggedResult.data, taggedResult.groupCols);
                 }
 
                 if (hasKeywords) {
@@ -1366,9 +1490,24 @@
                 tagGroups[r.tagName].push(r);
             }
 
+            const hasCategory = rules.some(r => r.category && r.categoryPriority < 9999);
+            let maxGroupLevel = 0;
+            if (hasCategory) {
+                for (const r of rules) {
+                    if (r.category && r.categoryPriority < 9999) {
+                        maxGroupLevel = Math.max(maxGroupLevel, r.groupValues.length);
+                    }
+                }
+                if (maxGroupLevel === 0) maxGroupLevel = 1;
+            }
+
+            const groupCols = hasCategory ? Array.from({ length: maxGroupLevel }, (_, i) => `分组${i + 1}`) : [];
+
             for (const row of result) {
-                row['集合'] = '0';
                 row['分类'] = '0';
+                for (const gc of groupCols) {
+                    row[gc] = '';
+                }
             }
 
             for (const tagName of tagOrder) {
@@ -1404,28 +1543,43 @@
                     if (catCandidates.length > 0) {
                         catCandidates.sort((a, b) => a.rule.categoryPriority - b.rule.categoryPriority || b.matchedKw.length - a.matchedKw.length);
                         const winner = catCandidates[0];
-                        row['集合'] = winner.rule.category;
+                        const catName = winner.rule.category;
+
+                        for (let level = 0; level < groupCols.length; level++) {
+                            const gc = groupCols[level];
+                            if (level < winner.rule.groupValues.length && winner.rule.groupValues[level]) {
+                                row[gc] = `${catName}-${winner.rule.groupValues[level]}`;
+                            } else if (level === 0) {
+                                const label = winner.cellValue || winner.matchedKw;
+                                row[gc] = `${catName}_${label}`;
+                            }
+                        }
+
                         if (winner.rule.groupValues.length > 0 && winner.rule.groupValues[0]) {
-                            row['分类'] = `${winner.rule.category}-${winner.rule.groupValues[0]}`;
-                        } else if (winner.rule.category === '竞品词') {
-                            row['分类'] = `${winner.rule.category}-${winner.cellValue || winner.matchedKw}`;
+                            row['分类'] = `${catName}-${winner.rule.groupValues[0]}`;
+                        } else if (catName === '竞品词') {
+                            row['分类'] = `${catName}-${winner.cellValue || winner.matchedKw}`;
                         } else {
-                            row['分类'] = winner.rule.category;
+                            row['分类'] = catName;
                         }
                     } else {
-                        row['集合'] = '否';
                         row['分类'] = '无机型词';
+                        for (const gc of groupCols) {
+                            row[gc] = '';
+                        }
                     }
                 } else {
-                    row['集合'] = '否';
                     row['分类'] = '无机型词';
+                    for (const gc of groupCols) {
+                        row[gc] = '';
+                    }
                 }
             }
 
-            return result;
+            return { data: result, groupCols: groupCols };
         }
 
-        function createTagSheet(cleanedData) {
+        function createTagSheet(cleanedData, groupCols) {
             const kwCol = '关键词 (数据来源于西柚找词)';
             const seen = new Set();
             const uniqueRows = [];
@@ -1446,10 +1600,18 @@
             return uniqueRows.map(row => {
                 const newRow = {
                     '关键词': row[kwCol],
-                    '周搜索量去重': row['周搜索量去重'] || ''
+                    '周搜索量去重': row['周搜索量去重'] || '',
+                    '分类': row['分类'] || ''
                 };
+                if (groupCols) {
+                    for (const gc of groupCols) {
+                        newRow[gc] = row[gc] || '';
+                    }
+                }
                 for (const col of FINAL_TAG_COLUMNS) {
-                    newRow[col] = row[col] || '';
+                    if (col !== '分类') {
+                        newRow[col] = row[col] || '';
+                    }
                 }
                 return newRow;
             });
@@ -1472,11 +1634,24 @@
 
             let maxGroupLevel = 0;
             if (hasCategory) {
-                maxGroupLevel = Math.max(...rules.map(r => r.groupValues.length), 1);
+                for (const r of rules) {
+                    if (r.category && r.categoryPriority < 9999) {
+                        maxGroupLevel = Math.max(maxGroupLevel, r.groupValues.length);
+                    }
+                }
+                if (maxGroupLevel === 0) maxGroupLevel = 1;
             }
 
-            const catCol = '大分类';
-            const kwTypeCol = 'KW/ASIN';
+            const RESERVED_SUMMARY = new Set(['大分类', 'KW/ASIN']);
+            const overriddenSummary = new Set();
+            if (hasCategory) {
+                for (const tn of tagOrder) {
+                    if (RESERVED_SUMMARY.has(tn)) overriddenSummary.add(tn);
+                }
+            }
+
+            const catCol = overriddenSummary.has('大分类') ? null : '大分类';
+            const kwTypeCol = overriddenSummary.has('KW/ASIN') ? null : 'KW/ASIN';
             const groupCols = Array.from({ length: maxGroupLevel }, (_, i) => `分组${i + 1}`);
 
             for (const row of result) {
@@ -1484,8 +1659,8 @@
                     row[tc] = '';
                 }
                 if (hasCategory) {
-                    row[catCol] = '';
-                    row[kwTypeCol] = '';
+                    if (catCol) row[catCol] = '';
+                    if (kwTypeCol) row[kwTypeCol] = '';
                     for (const gc of groupCols) {
                         row[gc] = '';
                     }
@@ -1516,8 +1691,8 @@
                         const catName = winner.rule.category;
                         const isAsin = catName.toUpperCase() === 'ASIN' || winner.rule.tagName.toUpperCase() === 'ASIN';
 
-                        row[kwTypeCol] = isAsin ? 'ASIN' : 'KW';
-                        row[catCol] = catName;
+                        if (kwTypeCol) row[kwTypeCol] = isAsin ? 'ASIN' : 'KW';
+                        if (catCol) row[catCol] = catName;
 
                         if (isAsin) {
                             for (const gc of groupCols) {
@@ -1538,49 +1713,23 @@
                 }
             }
 
-            // 强制列顺序
+            // 列顺序处理（与Python版本一致）
             const finalResult = result.map(row => {
-                const orderedKeys = [];
-                const seen = new Set();
-
-                // 1. 关键词
-                const kwCol = '关键词';
-                if (row.hasOwnProperty(kwCol)) {
-                    orderedKeys.push(kwCol);
-                    seen.add(kwCol);
-                }
-
-                // 2. 大分类 与 分组
-                if (row.hasOwnProperty(catCol)) {
-                    orderedKeys.push(catCol);
-                    seen.add(catCol);
-                }
-                for (const gc of groupCols) {
-                    if (row.hasOwnProperty(gc)) {
-                        orderedKeys.push(gc);
-                        seen.add(gc);
-                    }
-                }
-
-                // 3. 标签列
-                for (const tag of tagOrder) {
-                    if (row.hasOwnProperty(tag) && !seen.has(tag)) {
-                        orderedKeys.push(tag);
-                        seen.add(tag);
-                    }
-                }
-
-                // 4. 其他列
-                for (const key of Object.keys(row)) {
-                    if (!seen.has(key)) {
-                        orderedKeys.push(key);
-                        seen.add(key);
-                    }
-                }
-
                 const newRow = {};
-                for (const key of orderedKeys) {
-                    newRow[key] = row[key] || '';
+                // 顺序：关键词 → 大分类 → 分组列 → KW/ASIN → 剩余标签列
+                newRow['关键词'] = row['关键词'] || '';
+                if (hasCategory) {
+                    if (catCol && row.hasOwnProperty(catCol)) newRow[catCol] = row[catCol] || '';
+                    else if (overriddenSummary.has('大分类') && row.hasOwnProperty('大分类')) newRow['大分类'] = row['大分类'] || '';
+                    for (const gc of groupCols) {
+                        if (row.hasOwnProperty(gc)) newRow[gc] = row[gc] || '';
+                    }
+                    if (kwTypeCol && row.hasOwnProperty(kwTypeCol)) newRow[kwTypeCol] = row[kwTypeCol] || '';
+                    else if (overriddenSummary.has('KW/ASIN') && row.hasOwnProperty('KW/ASIN')) newRow['KW/ASIN'] = row['KW/ASIN'] || '';
+                }
+                for (const tag of tagOrder) {
+                    if (overriddenSummary.has(tag)) continue;
+                    if (row.hasOwnProperty(tag)) newRow[tag] = row[tag] || '';
                 }
                 return newRow;
             });
