@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西柚数据清洗打标工具 - 操作指南</title>
+    <style>
+        :root {
+            --sidebar-width: 290px;
+            --sidebar-bg: #0f172a;
+            --sidebar-text: #94a3b8;
+            --sidebar-hover-bg: #1e293b;
+            --sidebar-hover-text: #e2e8f0;
+            --sidebar-active-bg: #1e3a5f;
+            --sidebar-active-border: #3b82f6;
+            --sidebar-active-text: #ffffff;
+            --accent: #3b82f6;
+            --accent-soft: #eff6ff;
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --bg-page: #f8fafc;
+            --bg-surface: #ffffff;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --case-bg: #f0f7ff;
+            --case-border: #3b82f6;
+            --tip-bg: #fffbeb;
+            --tip-border: #f59e0b;
+            --success-bg: #f0fdf4;
+            --success-text: #16a34a;
+            --error-bg: #fef2f2;
+            --error-text: #dc2626;
+            --code-bg: #f1f5f9;
+            --code-text: #e11d48;
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+            --radius-sm: 6px;
+            --radius: 8px;
+            --radius-lg: 12px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-mono: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 76px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-page);
+            color: var(--text-body);
+            line-height: 1.78;
+            display: flex;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ==================== 侧边栏 ==================== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition);
+            box-shadow: var(--shadow-lg);
+            will-change: transform;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(calc(-1 * var(--sidebar-width)));
+        }
+
+        /* 侧边栏头部 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 16px 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+            white-space: nowrap;
+            letter-spacing: -0.01em;
+        }
+        .sidebar-brand .brand-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+        }
+        .sidebar-close-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition);
+            line-height: 1;
+        }
+        .sidebar-close-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* 导航滚动区 */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 6px 0 24px 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
+        }
+
+        .nav-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            cursor: pointer;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 13.5px;
+            transition: all var(--transition);
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+            user-select: none;
+            letter-spacing: 0.01em;
+        }
+        .nav-link:hover {
+            background: var(--sidebar-hover-bg);
+            color: var(--sidebar-hover-text);
+        }
+        .nav-link.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
+            border-left-color: var(--sidebar-active-border);
+            font-weight: 600;
+        }
+        .nav-link.level-1 {
+            font-weight: 600;
+            font-size: 14px;
+            padding: 11px 18px;
+            letter-spacing: 0.02em;
+        }
+        .nav-link.level-2 {
+            font-size: 13px;
+            padding: 7px 18px 7px 30px;
+            font-weight: 400;
+        }
+
+        .nav-toggle-arrow {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            transition: transform var(--transition);
+            flex-shrink: 0;
+            color: #64748b;
+        }
+        .nav-parent.expanded>.nav-link .nav-toggle-arrow {
+            transform: rotate(90deg);
+        }
+
+        .nav-children {
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        .nav-parent.expanded>.nav-children {
+            max-height: 2600px;
+        }
+
+        /* ==================== 遮罩层 ==================== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity var(--transition);
+            pointer-events: none;
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ==================== 主内容区 ==================== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+            transition: margin-left var(--transition);
+        }
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* 顶部栏 */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 500;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-xs);
+        }
+        .hamburger-btn {
+            display: none;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 9px;
+            color: var(--text-muted);
+            transition: all var(--transition);
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .hamburger-btn:hover {
+            background: var(--bg-page);
+            color: var(--text-heading);
+            border-color: #cbd5e1;
+        }
+        .top-bar-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-heading);
+            white-space: nowrap;
+            letter-spacing: -0.01em;
+        }
+        .top-bar-version {
+            font-size: 11px;
+            background: #eff6ff;
+            color: #3b82f6;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+
+        /* 内容包裹 */
+        .content-wrapper {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px 32px 72px 32px;
+        }
+
+        /* ==================== 章节样式 ==================== */
+        .section {
+            margin-bottom: 48px;
+        }
+        .section h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #e2e8f0;
+            letter-spacing: -0.02em;
+            line-height: 1.3;
+        }
+        .section h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 36px;
+            margin-bottom: 10px;
+            scroll-margin-top: 80px;
+            letter-spacing: -0.01em;
+            line-height: 1.4;
+        }
+        .section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #334155;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            scroll-margin-top: 80px;
+            line-height: 1.4;
+        }
+        .section h4 {
+            font-size: 14.5px;
+            font-weight: 600;
+            color: #475569;
+            margin-top: 18px;
+            margin-bottom: 6px;
+            scroll-margin-top: 80px;
+        }
+        .section p {
+            margin-bottom: 12px;
+            color: var(--text-body);
+            font-size: 15px;
+        }
+        .section ul,
+        .section ol {
+            margin-bottom: 14px;
+            padding-left: 22px;
+            color: var(--text-body);
+            font-size: 15px;
+        }
+        .section li {
+            margin-bottom: 6px;
+        }
+        .section strong {
+            color: #0f172a;
+        }
+
+        /* 强调标签 */
+        .tag {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+        .tag.required {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        .tag.optional {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* ==================== 卡片组件 ==================== */
+        /* 案例卡片 */
+        .case-card {
+            background: var(--case-bg);
+            border-left: 4px solid var(--case-border);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            padding: 14px 18px;
+            margin: 14px 0;
+            font-size: 14px;
+            line-height: 1.9;
+            box-shadow: var(--shadow-xs);
+        }
+        .case-card .case-label {
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 6px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .case-card code {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 12.5px;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+        }
+        .case-card .kw {
+            color: #0f172a;
+            font-weight: 600;
+            background: #e8f0fe;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .case-card .arrow {
+            color: #3b82f6;
+            margin: 0 5px;
+            font-weight: 700;
+        }
+        .case-card .result {
+            color: #059669;
+            font-weight: 700;
+            background: #d1fae5;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        /* 提示卡片 */
+        .tip-card {
+            background: var(--tip-bg);
+            border-left: 4px solid var(--tip-border);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            padding: 13px 18px;
+            margin: 14px 0;
+            font-size: 14px;
+            box-shadow: var(--shadow-xs);
+        }
+        .tip-card .tip-icon {
+            margin-right: 4px;
+        }
+
+        /* 对比卡片 */
+        .compare-row {
+            display: flex;
+            gap: 12px;
+            margin: 14px 0;
+            flex-wrap: wrap;
+        }
+        .compare-item {
+            flex: 1;
+            min-width: 200px;
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            font-size: 13.5px;
+            line-height: 1.6;
+            box-shadow: var(--shadow-xs);
+        }
+        .compare-item.good {
+            background: var(--success-bg);
+            border: 1px solid #bbf7d0;
+        }
+        .compare-item.bad {
+            background: var(--error-bg);
+            border: 1px solid #fecaca;
+        }
+        .compare-item .label {
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .compare-item.good .label {
+            color: var(--success-text);
+        }
+        .compare-item.bad .label {
+            color: var(--error-text);
+        }
+
+        /* ==================== 表格 ==================== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 500px;
+        }
+        table thead th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+            font-size: 12.5px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        table tbody td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-body);
+            vertical-align: top;
+            font-size: 13.5px;
+        }
+        table tbody tr:hover {
+            background: #fafcff;
+        }
+        table code {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+        }
+        table .cell-highlight {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* ==================== 代码块 ==================== */
+        .code-block {
+            background: #1e293b;
+            color: #cbd5e1;
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 14px 0;
+            line-height: 1.7;
+            box-shadow: var(--shadow-sm);
+        }
+        .code-block .hl-str {
+            color: #a5d6ff;
+        }
+        .code-block .hl-kw {
+            color: #facc15;
+        }
+        .code-block .hl-comment {
+            color: #64748b;
+        }
+
+        /* ==================== 问答卡片 ==================== */
+        .qa-card {
+            background: #f8fafc;
+            border-left: 4px solid #64748b;
+            border-radius: 0 var(--radius) var(--radius) 0;
+            padding: 14px 18px;
+            margin: 10px 0;
+            font-size: 14px;
+            box-shadow: var(--shadow-xs);
+        }
+        .qa-card .qa-q {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .qa-card .qa-a {
+            color: #475569;
+        }
+        .qa-card code {
+            background: #e2e8f0;
+            color: #334155;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+        }
+
+        /* ==================== 步骤编号 ==================== */
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            margin-right: 6px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 1024px) {
+            :root {
+                --sidebar-width: 270px;
+            }
+            .content-wrapper {
+                padding: 24px 20px 56px 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .sidebar-close-btn {
+                display: block;
+            }
+            .sidebar-overlay {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+            .hamburger-btn {
+                display: inline-flex;
+                align-items: center;
+            }
+            .content-wrapper {
+                padding: 16px 14px 48px 14px;
+            }
+            .section h1 {
+                font-size: 22px;
+            }
+            .section h2 {
+                font-size: 18px;
+            }
+            .section h3 {
+                font-size: 15px;
+            }
+            table {
+                font-size: 12px;
+            }
+            table thead th,
+            table tbody td {
+                padding: 7px 9px;
+            }
+            .case-card {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+            .compare-row {
+                flex-direction: column;
+            }
+            .compare-item {
+                min-width: auto;
+            }
+            .code-block {
+                font-size: 11px;
+                padding: 10px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 遮罩层（移动端） ==================== -->
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+    <!-- ==================== 左侧导航栏 ==================== -->
+    <nav class="sidebar" id="sidebar" aria-label="目录导航">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <span class="brand-dot">📋</span>
+                <span>操作指南目录</span>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="关闭导航" title="关闭导航">✕</button>
+        </div>
+        <div class="sidebar-nav" id="sidebarNav">
+            <ul class="nav-list">
+
+                <!-- 一、使用流程 -->
+                <li class="nav-item nav-parent expanded" id="navParent-1">
+                    <span class="nav-link level-1" data-toggle="navParent-1">
+                        <span class="nav-toggle-arrow">▶</span>
+                        <span>一、使用流程</span>
+                    </span>
+                    <ul class="nav-children">
+                        <li><a class="nav-link level-2" href="#sec-1-1" data-section="sec-1-1">1.1 西柚数据下载</a></li>
+                        <li><a class="nav-link level-2" href="#sec-1-2" data-section="sec-1-2">1.2 制作 ASIN mapping 表</a></li>
+                        <li><a class="nav-link level-2" href="#sec-1-3" data-section="sec-1-3">1.3 制作打标规则表</a></li>
+                        <li><a class="nav-link level-2" href="#sec-1-4" data-section="sec-1-4">1.4 使用工具打标</a></li>
+                    </ul>
+                </li>
+
+                <!-- 二、打标规则 -->
+                <li class="nav-item nav-parent expanded" id="navParent-2">
+                    <span class="nav-link level-1" data-toggle="navParent-2">
+                        <span class="nav-toggle-arrow">▶</span>
+                        <span>二、打标规则</span>
+                    </span>
+                    <ul class="nav-children">
+                        <li><a class="nav-link level-2" href="#sec-2-1" data-section="sec-2-1">2.1 KW/ASIN — 判断关键词还是ASIN</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-2" data-section="sec-2-2">2.2 品牌词 — 识别自己的品牌</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-3" data-section="sec-2-3">2.3 竞品词 — 识别竞品品牌</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-4" data-section="sec-2-4">2.4 机型 — 识别手机型号</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-5" data-section="sec-2-5">2.5 case/cover — 识别壳类</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-6" data-section="sec-2-6">2.6 screen protector — 屏幕保护膜</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-7" data-section="sec-2-7">2.7 tempered glass — 钢化玻璃膜</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-8" data-section="sec-2-8">2.8 camera lens — 镜头膜</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-9" data-section="sec-2-9">2.9 privacy — 防窥膜</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-10" data-section="sec-2-10">2.10 磁吸 — 识别磁吸功能</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-11" data-section="sec-2-11">2.11 透明 — 识别透明材质</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-12" data-section="sec-2-12">2.12 硅胶 — 识别硅胶材质</a></li>
+                        <li><a class="nav-link level-2" href="#sec-2-13" data-section="sec-2-13">2.13 支架 — 识别支架类</a></li>
+                    </ul>
+                </li>
+
+                <!-- 三、注意事项 -->
+                <li class="nav-item">
+                    <a class="nav-link level-1" href="#sec-3" data-section="sec-3">
+                        <span>三、注意事项</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ==================== 主内容区 ==================== -->
+    <div class="main-content" id="mainContent">
+        <!-- 顶部工具栏 -->
+        <div class="top-bar">
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="打开导航菜单" title="打开导航菜单">☰</button>
+            <span class="top-bar-title">📋 西柚数据清洗打标工具 · 操作指南</span>
+            <span class="top-bar-version">v2.0</span>
+        </div>
+
+        <!-- 正文内容 -->
+        <div class="content-wrapper">
+
+            <!-- ==================== 一、使用流程 ==================== -->
+            <div class="section" id="sec-1">
+                <h1>一、使用流程</h1>
+                <p>整个工具的完整使用路径分为四步：<strong>从西柚下载数据 → 制作 ASIN mapping 表 → 制作打标规则表 → 上传到工具打标并导出结果</strong>。下面逐一说明。</p>
+
+                <!-- 1.1 -->
+                <h2 id="sec-1-1">1.1 西柚数据下载</h2>
+                <p>在西柚工具中，使用<strong>"关键词反查"</strong>功能，下载你需要分析的每个 ASIN 的数据。</p>
+                <p>下载后的文件格式如下（<strong>不要改文件名</strong>）：</p>
+                <div class="code-block">
+                    <span class="hl-str">关键词反查结果_</span><span class="hl-kw">UK</span>_<span class="hl-str">B0FL1N82VZ</span>_202509~202601.xlsx
+                </div>
+                <p><strong>文件名含义：</strong></p>
+                <ul>
+                    <li><code>UK</code> — 站点（英国站）</li>
+                    <li><code>B0FL1N82VZ</code> — ASIN 编号</li>
+                    <li><code>202509~202601</code> — 数据周期</li>
+                </ul>
+                <p>把所有下载好的 xlsx 文件放在<strong>同一个文件夹</strong>里（文件夹叫什么名字无所谓），保持原始文件名不变即可。</p>
+                <div class="compare-row">
+                    <div class="compare-item good">
+                        <span class="label">✅ 正确做法</span>
+                        将下载的十几个 xlsx 文件原封不动地放进一个文件夹，文件夹名随意。
+                    </div>
+                    <div class="compare-item bad">
+                        <span class="label">❌ 错误做法</span>
+                        把文件重命名——程序会无法从文件名中提取 ASIN 和站点信息。
+                    </div>
+                </div>
+
+                <!-- 1.2 -->
+                <h2 id="sec-1-2">1.2 制作 ASIN mapping 表</h2>
+
+                <p>在 Excel 中创建以下列（<strong>ASIN 列必须存在</strong>，其他列名可自定义）：</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ASIN</th>
+                                <th>品牌</th>
+                                <th>产品系列</th>
+                                <th>机型</th>
+                                <th>细分</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="cell-highlight">B0FL1N82VZ</td>
+                                <td>ESR</td>
+                                <td>高清膜类</td>
+                                <td>17PM</td>
+                                <td>高清膜</td>
+                            </tr>
+                            <tr>
+                                <td>B0FR7X3K9P</td>
+                                <td>ESR</td>
+                                <td>高清膜类</td>
+                                <td>17pro</td>
+                                <td>特级膜</td>
+                            </tr>
+                            <tr>
+                                <td>B0DT4XYZ8Q</td>
+                                <td>TOCOL</td>
+                                <td>高清膜类</td>
+                                <td>17PM</td>
+                                <td>高清膜</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p><strong>必填：</strong></p>
+                <ul>
+                    <li><strong>ASIN 列</strong>：必须和西柚数据里的 ASIN 完全一致。</li>
+                    <li><strong>品牌 列</strong>：填该 ASIN 的品牌名，如 ESR、TOCOL、Spigen 等。</li>
+                </ul>
+                <p>保存为 <code>.xlsx</code> 格式，第一行必须是命名为 <code>ASIN</code> 的列。</p>
+
+                <!-- 1.3 -->
+                <h2 id="sec-1-3">1.3 制作打标规则表</h2>
+                <p>打标规则表是整个工具的核心。它是一个 Excel 表格，<strong>每一行就是一条规则</strong>，程序按行逐条匹配关键词。</p>
+                <h3>规则表的列结构</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>列名</th>
+                                <th>必填</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>规则ID</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td>序号，仅方便查看，不影响结果</td>
+                            </tr>
+                            <tr>
+                                <td><strong>标签名称</strong></td>
+                                <td><span class="tag required">✅必填</span></td>
+                                <td>该规则要输出到哪个标签列。相同标签名的规则会输出到同一列</td>
+                            </tr>
+                            <tr>
+                                <td>匹配模式</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td><code>包含任一</code> / <code>包含全部</code> / <code>精确等于</code> / <code>开头是</code> / <code>结尾是</code> / <code>正则</code>，默认"包含任一"</td>
+                            </tr>
+                            <tr>
+                                <td><strong>关键词</strong></td>
+                                <td><span class="tag required">✅必填</span></td>
+                                <td>要匹配的词，多个用<strong>英文逗号</strong>隔开</td>
+                            </tr>
+                            <tr>
+                                <td>否定关键词</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td>如果关键词包含这些词，则<strong>不执行</strong>该规则</td>
+                            </tr>
+                            <tr>
+                                <td>忽略大小写</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td>填"是"则不区分大小写（英文关键词建议都填"是"）</td>
+                            </tr>
+                            <tr>
+                                <td>优先级</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td><strong>数字越小越优先</strong>，同标签名下决定哪条规则胜出</td>
+                            </tr>
+                            <tr>
+                                <td>输出值</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td>命中时填入单元格的值；不填则填入匹配到的那个词</td>
+                            </tr>
+                            <tr>
+                                <td>分类</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td>大分类名，如"品牌词""大词""小词""机型词"</td>
+                            </tr>
+                            <tr>
+                                <td>分类优先级</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td>决定最终「集合」列取哪个分类，数字越小越优先</td>
+                            </tr>
+                            <tr>
+                                <td>分组值</td>
+                                <td><span class="tag optional">选填</span></td>
+                                <td>分组名，如"壳""膜""镜头膜""防窥膜""磁吸"等，如需多个可再后列添加</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-icon">📝</span><strong>核心逻辑：</strong>程序遍历每一条规则，检查关键词是否命中。同标签名下，优先级数字最小的规则胜出。不同标签名之间互不影响。具体的规则内容和案例请见<strong>第二部分"打标规则"</strong>。
+                </div>
+
+                <!-- 1.4 -->
+                <h2 id="sec-1-4">1.4 使用工具打标</h2>
+                <h3>打开工具</h3>
+                <ul>
+                    <li><strong>网页版：</strong>打开链接即可。</li>
+                    <li><strong>exe 程序：</strong>双击 <code>西柚数据清洗打标工具.exe</code>。</li>
+                </ul>
+                <p>两种方式功能完全一致，网页版无需安装任何软件。</p>
+
+                <h3>上传文件（两种模式）</h3>
+                <p><strong>模式 A — 西柚流量词分析（完整模式）：</strong></p>
+                <ol>
+                    <li>上传<strong>西柚数据文件夹</strong></li>
+                    <li>上传<strong>ASIN mapping 表</strong></li>
+                    <li>上传<strong>打标规则表</strong> </li>
+                    <li>点击「<strong>开始处理</strong>」</li>
+                    <li>处理完成后，点击「<strong>导出结果</strong>」</li>
+                </ol>
+                <p><strong>模式 B — 关键词单独打标（简易模式）：</strong></p>
+                <ol>
+                    <li>上传<strong>关键词数据表</strong></li>
+                    <li>上传<strong>打标规则表</strong> </li>
+                    <li>点击「<strong>开始处理</strong>」→ 导出结果</li>
+                </ol>
+                <div class="tip-card">
+                    <span class="tip-icon">💡</span>如果同时上传了西柚数据和关键词数据，程序会<strong>同时处理两种模式</strong>，导出文件中会包含多个 Sheet。
+                </div>
+
+                <h3>预览与导出</h3>
+                <p>处理完成后，可在工具界面切换标签页预览结果（前 500 行）。导出的是一个 Excel 文件，包含以下 Sheet：</p>
+                <ul>
+                    <li><strong>西柚数据源</strong> — 清洗后的完整数据，含 ASIN 关联的品牌、机型等信息</li>
+                    <li><strong>打标</strong> — 去重后的关键词 + 打标结果（集合、分类、各标签列）</li>
+                    <li><strong>关键词打标</strong> — 单独关键词打标的结果</li>
+                </ul>
+            </div>
+
+            <!-- ==================== 二、打标规则 ==================== -->
+            <div class="section" id="sec-2">
+                <h1>二、打标规则</h1>
+                <p>以下逐条讲解所有打标规则，<strong>每条规则都配有具体案例</strong>，帮助你理解匹配逻辑。所有规则来自预置的 54 条规则集（<code>手机膜打标逻辑_xin.xlsx</code>）。</p>
+
+                <!-- 2.1 -->
+                <h2 id="sec-2-1">2.1 KW/ASIN — 判断是关键词还是 ASIN</h2>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>分类</th><th>分类优先级</th></tr></thead>
+                        <tbody>
+                            <tr><td>1-1</td><td>开头是</td><td><code>B0</code></td><td>ASIN</td><td>10</td></tr>
+                            <tr><td>1-2（兜底）</td><td>正则</td><td><code>.*</code></td><td>KW</td><td>50</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">B0FL1N82VZ</span> <span class="arrow">→</span> 以 B0 开头，分类为 <span class="result">ASIN</span><br>
+                    <span class="kw">iphone 17 screen protector</span> <span class="arrow">→</span> 不以 B0 开头，分类为 <span class="result">KW</span><br>
+                    <span class="kw">B08N5WRW56</span> <span class="arrow">→</span> 以 B0 开头，分类为 <span class="result">ASIN</span>
+                </div>
+
+                <!-- 2.2 -->
+                <h2 id="sec-2-2">2.2 品牌词 — 识别自己的品牌</h2>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>分类</th><th>分类优先级</th></tr></thead>
+                        <tbody>
+                            <tr><td>2-1</td><td>包含任一</td><td><code>ESR</code></td><td>（匹配到的词）</td><td>品牌词</td><td>10</td></tr>
+                            <tr><td>2-2</td><td>包含任一</td><td><code>halo,halolock</code></td><td>halolock</td><td>品牌词</td><td>10</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">ESR iphone 17 screen protector</span> <span class="arrow">→</span> 包含 ESR，品牌词列填 <span class="result">ESR</span><br>
+                    <span class="kw">halolock iphone 17 case</span> <span class="arrow">→</span> 包含 halo，但输出值指定为 <span class="result">halolock</span><br>
+                    <span class="kw">iphone 17 case</span> <span class="arrow">→</span> 不包含 ESR 或 halo，不命中
+                </div>
+
+                <!-- 2.3 -->
+                <h2 id="sec-2-3">2.3 竞品词 — 识别竞品品牌</h2>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>分类</th><th>分类优先级</th></tr></thead>
+                        <tbody>
+                            <tr><td>3</td><td>包含任一</td><td><code>spigen,torras,jetech,...</code></td><td>竞品词</td><td>10</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">spigen iphone 17 case</span> <span class="arrow">→</span> 包含 spigen，竞品品牌列填 <span class="result">spigen</span><br>
+                    <span class="kw">torras screen protector</span> <span class="arrow">→</span> 包含 torras，竞品品牌列填 <span class="result">torras</span><br>
+                    <span class="kw">ESR iphone case</span> <span class="arrow">→</span> 不包含任何竞品品牌，不命中（ESR 是自己的品牌，归品牌词管）
+                </div>
+
+                <!-- 2.4 -->
+                <h2 id="sec-2-4">2.4 机型 — 识别手机型号（20+ 子规则）</h2>
+                <p><strong>核心策略：从精确到宽泛逐层匹配</strong>，优先级数字越小越先匹配。</p>
+                <p><strong>匹配顺序：</strong>先看是不是"17 Pro Max"（最精确，优先级6）→ 再看"17 Pro"（优先级7）→ 再看"17"（优先级8）→ 再看"16 Pro Max"（优先级9）→ ... → 最后都没匹配上就写"其他"（优先级34，兜底）。</p>
+                <h3>17 系列</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>优先级</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>说明</th></tr></thead>
+                        <tbody>
+                            <tr><td>6</td><td>包含全部</td><td><code>pro,max,17</code></td><td>17PM</td><td>必须同时包含 pro、max、17 三个词</td></tr>
+                            <tr><td>7</td><td>正则</td><td><code>(\b17\b.*\bpro\b|\bpro\b.*\b17\b)</code></td><td>17pro</td><td>17 Pro 的各种写法（如"17 pro""pro 17"）</td></tr>
+                            <tr><td>8</td><td>包含全部</td><td><code>17</code></td><td>17</td><td>只要包含数字17（PM和pro已经被前面规则命中）</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h3>16 系列（优先级 9-17）</h3>
+                <p>依次匹配：16PM（包含全部 pro+max+16）→ 16pro（多种正则，如 <code>\b16\s*pro\b</code>、<code>16pro</code>、<code>pro16</code> 等，且排除 protector）→ 16plus（包含全部 16+plus）→ 16（包含全部 16）。</p>
+                <h3>15 系列（优先级 18-32）</h3>
+                <p>逻辑同上，依次匹配 15PM → 15pro → 15plus → 15。</p>
+                <h3>兜底规则（优先级 34）</h3>
+                <p>正则 <code>.*</code>，输出值=<code>其他</code>，分类=<code>否</code>。所有没匹配到具体型号的关键词，机型都填"其他"。</p>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">iphone 17 pro max screen protector</span> <span class="arrow">→</span> 同时含 pro+max+17，机型填 <span class="result">17PM</span><br>
+                    <span class="kw">17 pro case</span> <span class="arrow">→</span> 含 pro 和 17（无 max），机型填 <span class="result">17pro</span><br>
+                    <span class="kw">iphone 17 case</span> <span class="arrow">→</span> 只含 17，机型填 <span class="result">17</span><br>
+                    <span class="kw">16 pro max tempered glass</span> <span class="arrow">→</span> 机型填 <span class="result">16PM</span><br>
+                    <span class="kw">iphone 16 plus cover</span> <span class="arrow">→</span> 机型填 <span class="result">16plus</span><br>
+                    <span class="kw">phone case</span> <span class="arrow">→</span> 无任何机型，兜底填 <span class="result">其他</span>
+                </div>
+
+                <!-- 2.5 -->
+                <h2 id="sec-2-5">2.5 case/cover — 识别壳类关键词</h2>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>分组值</th></tr></thead>
+                        <tbody>
+                            <tr><td>5-1</td><td>包含全部</td><td><code>cover</code></td><td>cover</td><td>壳</td></tr>
+                            <tr><td>5-2</td><td>包含全部</td><td><code>case</code></td><td>case</td><td>壳</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">iphone 17 clear case</span> <span class="arrow">→</span> 包含 case，否词列填 <span class="result">case</span><br>
+                    <span class="kw">iphone 17 cover</span> <span class="arrow">→</span> 包含 cover，否词列填 <span class="result">cover</span><br>
+                    <span class="kw">iphone 17 screen protector</span> <span class="arrow">→</span> 不含 case 或 cover，不命中
+                </div>
+
+                <!-- 2.6 -->
+                <h2 id="sec-2-6">2.6 screen protector — 识别屏幕保护膜</h2>
+                <p><strong>作用：</strong>判断关键词是不是在说屏幕保护膜。从精确到宽泛逐级匹配。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>分组值</th><th>分类</th><th>分类优先级</th></tr></thead>
+                        <tbody>
+                            <tr><td>6-1</td><td>包含全部</td><td><code>protector,screen</code></td><td>screen protector</td><td>膜</td><td>大词</td><td>30</td></tr>
+                            <tr><td>6-2</td><td>包含全部</td><td><code>protector</code></td><td>protector</td><td>膜</td><td>-</td><td>-</td></tr>
+                            <tr><td>6-3</td><td>包含全部</td><td><code>screen</code></td><td>screen</td><td>膜</td><td>-</td><td>-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">screen protector for iphone 17</span> <span class="arrow">→</span> 同时含 protector+screen，填 <span class="result">screen protector</span><br>
+                    <span class="kw">tempered glass protector</span> <span class="arrow">→</span> 含 protector，填 <span class="result">protector</span><br>
+                    <span class="kw">screen replacement</span> <span class="arrow">→</span> 只含 screen，填 <span class="result">screen</span>
+                </div>
+
+                <!-- 2.7 -->
+                <h2 id="sec-2-7">2.7 tempered glass — 识别钢化玻璃膜</h2>
+                <p><strong>作用：</strong>更精确地识别钢化玻璃膜关键词。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>分组值</th><th>分类</th><th>分类优先级</th></tr></thead>
+                        <tbody>
+                            <tr><td>7-1</td><td>包含全部</td><td><code>tempered,glass</code></td><td>tempered glass</td><td>膜</td><td>小词</td><td>20</td></tr>
+                            <tr><td>7-2</td><td>包含全部</td><td><code>glass</code></td><td>glass</td><td>膜</td><td>-</td><td>-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">tempered glass for iphone 17</span> <span class="arrow">→</span> 同时含 tempered+glass，填 <span class="result">tempered glass</span><br>
+                    <span class="kw">glass screen protector</span> <span class="arrow">→</span> 含 glass，填 <span class="result">glass</span><br>
+                    <span class="kw">plastic screen protector</span> <span class="arrow">→</span> 不含 glass 或 tempered，不命中
+                </div>
+
+                <!-- 2.8 -->
+                <h2 id="sec-2-8">2.8 camera lens — 识别镜头膜</h2>
+                <p><strong>作用：</strong>判断关键词是不是在说镜头膜。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>分组值</th><th>分类</th><th>分类优先级</th></tr></thead>
+                        <tbody>
+                            <tr><td>8-1</td><td>包含全部</td><td><code>camera lens</code></td><td>camera lens</td><td>镜头膜</td><td>小词</td><td>15</td></tr>
+                            <tr><td>8-2</td><td>包含全部</td><td><code>camera</code></td><td>camera</td><td>镜头膜</td><td>-</td><td>-</td></tr>
+                            <tr><td>8-3</td><td>包含全部</td><td><code>lens</code></td><td>lens</td><td>镜头膜</td><td>-</td><td>-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">camera lens protector iphone 17</span> <span class="arrow">→</span> 同时含 camera+lens，填 <span class="result">camera lens</span><br>
+                    <span class="kw">camera cover</span> <span class="arrow">→</span> 含 camera，填 <span class="result">camera</span><br>
+                    <span class="kw">lens cover</span> <span class="arrow">→</span> 含 lens，填 <span class="result">lens</span>
+                </div>
+
+                <!-- 2.9 -->
+                <h2 id="sec-2-9">2.9 privacy — 识别防窥膜</h2>
+                <p><strong>作用：</strong>判断关键词是不是在说防窥膜。"privacy"即隐私，防窥膜关键词常带此词；"anti spy"和"spy"也属于防窥相关。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>分组值</th><th>分类</th><th>分类优先级</th></tr></thead>
+                        <tbody>
+                            <tr><td>9-1</td><td>包含全部</td><td><code>privacy</code></td><td>privacy</td><td>防窥膜</td><td>小词</td><td>15</td></tr>
+                            <tr><td>9-2</td><td>包含全部</td><td><code>anti,spy</code></td><td>anti spy</td><td>防窥膜</td><td>-</td><td>-</td></tr>
+                            <tr><td>9-3</td><td>包含全部</td><td><code>spy</code></td><td>anti spy</td><td>防窥膜</td><td>-</td><td>-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">privacy screen protector iphone 17</span> <span class="arrow">→</span> 含 privacy，填 <span class="result">privacy</span><br>
+                    <span class="kw">anti spy glass</span> <span class="arrow">→</span> 同时含 anti+spy，填 <span class="result">anti spy</span><br>
+                    <span class="kw">spy proof film</span> <span class="arrow">→</span> 含 spy，填 <span class="result">anti spy</span>
+                </div>
+
+                <!-- 2.10 -->
+                <h2 id="sec-2-10">2.10 磁吸 — 识别磁吸功能</h2>
+                <p><strong>作用：</strong>判断关键词是不是在说磁吸功能。磁吸英文写法多样（MagSafe、magnetic、mag safe、magfit 等），需用正则精确匹配。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>子规则</th><th>匹配模式</th><th>正则/关键词</th><th>输出值</th><th>说明</th></tr></thead>
+                        <tbody>
+                            <tr><td>10-1</td><td>正则</td><td><code>\bmag\s+safe\b</code></td><td>mag safe</td><td>匹配"mag safe"（中间可有多个空格）</td></tr>
+                            <tr><td>10-2</td><td>正则</td><td><code>\bmagfit\b</code></td><td>magfit</td><td>精确匹配 magfit 整词</td></tr>
+                            <tr><td>10-3</td><td>正则</td><td><code>magsafe</code></td><td>magsafe</td><td>匹配 magsafe（不区分大小写）</td></tr>
+                            <tr><td>10-4</td><td>正则</td><td><code>\bmagnetic\b</code></td><td>magnetic</td><td>精确匹配 magnetic 整词</td></tr>
+                            <tr><td>10-5</td><td>正则</td><td><code>\bmagnet\b</code></td><td>magnet</td><td>精确匹配 magnet 整词</td></tr>
+                            <tr><td>10-6</td><td>正则</td><td><code>\bmag\b</code></td><td>mag</td><td>精确匹配 mag 整词（最宽泛）</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>所有子规则：分组值=<code>磁吸</code>，分类=<code>小词</code>，分类优先级=<code>16</code>。</p>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">mag safe charger</span> <span class="arrow">→</span> 匹配 <code>\bmag\s+safe\b</code>，填 <span class="result">mag safe</span><br>
+                    <span class="kw">magsafe case</span> <span class="arrow">→</span> 匹配 magsafe，填 <span class="result">magsafe</span><br>
+                    <span class="kw">magnetic car mount</span> <span class="arrow">→</span> 匹配 <code>\bmagnetic\b</code>，填 <span class="result">magnetic</span><br>
+                    <span class="kw">mag wallet</span> <span class="arrow">→</span> 匹配 <code>\bmag\b</code>，填 <span class="result">mag</span>
+                </div>
+
+                <!-- 2.11 -->
+                <h2 id="sec-2-11">2.11 透明 — 识别透明材质</h2>
+                <p><strong>作用：</strong>判断关键词是不是在说透明壳/透明膜。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>分组值</th></tr></thead>
+                        <tbody>
+                            <tr><td>11-1</td><td>包含全部</td><td><code>clear</code></td><td>透明</td></tr>
+                            <tr><td>11-2</td><td>包含全部</td><td><code>transparent</code></td><td>透明</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">clear case for iphone 17</span> <span class="arrow">→</span> 含 clear，透明列填 <span class="result">clear</span><br>
+                    <span class="kw">transparent screen protector</span> <span class="arrow">→</span> 含 transparent，透明列填 <span class="result">transparent</span>
+                </div>
+
+                <!-- 2.12 -->
+                <h2 id="sec-2-12">2.12 硅胶 — 识别硅胶材质</h2>
+                <p><strong>作用：</strong>判断关键词是不是在说硅胶/软胶材质产品（hydrogel 水凝膜、gel 凝胶、silicone 硅胶、tpu 软胶）。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>输出值</th><th>分组值</th></tr></thead>
+                        <tbody>
+                            <tr><td>12-1</td><td>正则</td><td><code>\bhydrogel\b</code></td><td>hydrogel</td><td>硅胶</td></tr>
+                            <tr><td>12-2</td><td>正则</td><td><code>\bgel\b</code></td><td>gel</td><td>硅胶</td></tr>
+                            <tr><td>12-3</td><td>包含全部</td><td><code>silicone</code></td><td>（匹配到的词）</td><td>硅胶</td></tr>
+                            <tr><td>12-4</td><td>包含全部</td><td><code>tpu</code></td><td>（匹配到的词）</td><td>硅胶</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">hydrogel screen protector</span> <span class="arrow">→</span> 匹配 <code>\bhydrogel\b</code>，填 <span class="result">hydrogel</span><br>
+                    <span class="kw">silicone case</span> <span class="arrow">→</span> 含 silicone，硅胶列填 <span class="result">silicone</span><br>
+                    <span class="kw">tpu film</span> <span class="arrow">→</span> 含 tpu，硅胶列填 <span class="result">tpu</span>
+                </div>
+
+                <!-- 2.13 -->
+                <h2 id="sec-2-13">2.13 支架 — 识别支架类</h2>
+                <p><strong>作用：</strong>判断关键词是不是在说支架。"kickstand"即支架，"stand"也跟支架/立架相关。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>规则</th><th>匹配模式</th><th>关键词</th><th>分组值</th></tr></thead>
+                        <tbody>
+                            <tr><td>13-1</td><td>包含全部</td><td><code>kickstand</code></td><td>支架</td></tr>
+                            <tr><td>13-2</td><td>包含全部</td><td><code>stand</code></td><td>支架</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="case-card">
+                    <div class="case-label">📌 案例</div>
+                    <span class="kw">kickstand case for iphone</span> <span class="arrow">→</span> 含 kickstand，支架列填 <span class="result">kickstand</span><br>
+                    <span class="kw">phone stand</span> <span class="arrow">→</span> 含 stand，支架列填 <span class="result">stand</span><br>
+                    <span class="kw">standing case</span> <span class="arrow">→</span> standing 包含 stand 子串，支架列填 <span class="result">stand</span>
+                </div>
+            </div>
+
+            <!-- ==================== 三、注意事项 ==================== -->
+            <div class="section" id="sec-3">
+                <h1>三、注意事项</h1>
+
+                <h2>3.1 文件相关</h2>
+                <div class="qa-card">
+                    <div class="qa-q">📌 西柚数据文件名不要改</div>
+                    <div class="qa-a">程序依靠文件名中的 <code>关键词反查结果_站点_ASIN_周期</code> 格式来提取站点和 ASIN 信息。改了文件名，ASIN 关联就会失败。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 ASIN mapping 表必须有 ASIN 列</div>
+                    <div class="qa-a">列名必须包含 <code>ASIN</code>（不区分大小写，但建议写大写）。缺少该列会导致关联步骤报错。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 规则表关键词列用英文逗号分隔</div>
+                    <div class="qa-a">多个关键词之间用<strong>英文逗号</strong>（<code>,</code>）隔开，不要用中文逗号。例如 <code>pro,max,17</code> 而不是 <code>pro，max，17</code>。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 忽略大小写建议填"是"</div>
+                    <div class="qa-a">英文关键词建议一律将"忽略大小写"设为"是"，这样 <code>ESR</code> 和 <code>esr</code> 都能匹配到。否则可能出现漏标。</div>
+                </div>
+
+                <h2>3.2 规则逻辑相关</h2>
+                <div class="qa-card">
+                    <div class="qa-q">📌 同标签名下，优先级数字小的胜出</div>
+                    <div class="qa-a">比如"机型"标签有 20+ 条规则，优先级 6（17PM）的规则会优先于优先级 7（17pro）的规则。所以<strong>把更精确的规则设更小的优先级数字</strong>。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 不同标签名之间互不影响</div>
+                    <div class="qa-a">一条关键词可以同时命中"品牌词""机型""tempered glass"等多个标签，各自填各自的列，不会互相冲突。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 兜底规则要放在最后</div>
+                    <div class="qa-a">比如机型规则中的"其他"（正则 <code>.*</code>，优先级 34），必须放在所有具体机型规则之后，否则会抢在前面把所有关键词都匹配掉。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 「集合」列由分类优先级决定</div>
+                    <div class="qa-a">当一条关键词命中多个带"分类"的规则时，"集合"列取<strong>分类优先级数字最小</strong>的那个分类。例如竞品词（10）的优先级优于小词（15-20）和大词（19-30），所以会优先归入竞品词。</div>
+                </div>
+
+                <h2>3.3 操作相关</h2>
+                <div class="qa-card">
+                    <div class="qa-q">📌 预览只显示前 500 行</div>
+                    <div class="qa-a">工具界面上的预览仅展示前 500 行数据，用于快速检查打标效果。完整数据需要点击"导出结果"后在 Excel 中查看。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 两种模式可同时运行</div>
+                    <div class="qa-a">如果同时上传了西柚数据文件夹和关键词数据表，程序会同时处理两种模式，导出文件包含"西柚数据源""打标""关键词打标"三个 Sheet。</div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-q">📌 网页版无需安装</div>
+                    <div class="qa-a">双击 <code>链接</code> 即可在浏览器中运行，功能和 exe 程序完全一致。</div>
+                </div>
+
+            </div>
+
+        </div><!-- /content-wrapper -->
+    </div><!-- /main-content -->
+
+    <script>
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarNav = document.getElementById('sidebarNav');
+
+            const isMobile = () => window.innerWidth <= 768;
+
+            // 移动端打开侧边栏
+            function openSidebarMobile() {
+                sidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            // 移动端关闭侧边栏
+            function closeSidebarMobile() {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            // 桌面端折叠/展开
+            function toggleSidebarDesktop() {
+                const collapsed = sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded', collapsed);
+            }
+
+            // 汉堡按钮
+            hamburgerBtn.addEventListener('click', () => {
+                if (isMobile()) {
+                    sidebar.classList.contains('mobile-open') ? closeSidebarMobile() : openSidebarMobile();
+                } else {
+                    toggleSidebarDesktop();
+                }
+            });
+
+            // 关闭按钮
+            sidebarCloseBtn.addEventListener('click', () => {
+                if (isMobile()) {
+                    closeSidebarMobile();
+                } else {
+                    toggleSidebarDesktop();
+                }
+            });
+
+            // 遮罩层
+            sidebarOverlay.addEventListener('click', () => {
+                if (isMobile()) closeSidebarMobile();
+            });
+
+            // 窗口大小变化
+            let prevWidth = window.innerWidth;
+            window.addEventListener('resize', () => {
+                const currWidth = window.innerWidth;
+                if ((prevWidth <= 768 && currWidth > 768) || (prevWidth > 768 && currWidth <= 768)) {
+                    sidebar.classList.remove('mobile-open', 'collapsed');
+                    sidebarOverlay.classList.remove('show');
+                    mainContent.classList.remove('expanded');
+                    document.body.style.overflow = '';
+                }
+                prevWidth = currWidth;
+            });
+
+            // 树形导航展开/折叠
+            sidebarNav.addEventListener('click', (e) => {
+                const toggleEl = e.target.closest('[data-toggle]');
+                if (toggleEl) {
+                    e.preventDefault();
+                    const parentId = toggleEl.getAttribute('data-toggle');
+                    const parent = document.getElementById(parentId);
+                    if (parent) {
+                        parent.classList.toggle('expanded');
+                    }
+                }
+            });
+
+            // 导航链接点击：移动端关闭侧边栏
+            sidebarNav.addEventListener('click', (e) => {
+                const link = e.target.closest('a[data-section]');
+                if (link && isMobile()) {
+                    setTimeout(() => closeSidebarMobile(), 150);
+                }
+            });
+
+            // ESC 关闭
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isMobile() && sidebar.classList.contains('mobile-open')) {
+                    closeSidebarMobile();
+                }
+            });
+
+            // ========== Intersection Observer：滚动高亮 ==========
+            const allSectionIds = [
+                'sec-1-1', 'sec-1-2', 'sec-1-3', 'sec-1-4',
+                'sec-2-1', 'sec-2-2', 'sec-2-3', 'sec-2-4', 'sec-2-5',
+                'sec-2-6', 'sec-2-7', 'sec-2-8', 'sec-2-9', 'sec-2-10',
+                'sec-2-11', 'sec-2-12', 'sec-2-13',
+                'sec-3'
+            ];
+
+            const navLinkMap = {};
+            allSectionIds.forEach(id => {
+                const link = sidebarNav.querySelector(`a[data-section="${id}"]`);
+                if (link) navLinkMap[id] = link;
+            });
+
+            function removeAllActive() {
+                sidebarNav.querySelectorAll('.nav-link.active').forEach(el => el.classList.remove('active'));
+            }
+
+            function highlightNav(id) {
+                removeAllActive();
+                if (navLinkMap[id]) {
+                    navLinkMap[id].classList.add('active');
+                }
+            }
+
+            const observer = new IntersectionObserver((entries) => {
+                let visibleId = null;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        visibleId = entry.target.id;
+                    }
+                });
+                if (visibleId && allSectionIds.includes(visibleId)) {
+                    highlightNav(visibleId);
+                }
+            }, {
+                root: null,
+                rootMargin: '-70px 0px -55% 0px',
+                threshold: 0
+            });
+
+            allSectionIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) observer.observe(el);
+            });
+
+            // 初始高亮
+            setTimeout(() => {
+                let found = false;
+                for (const id of allSectionIds) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        const rect = el.getBoundingClientRect();
+                        if (rect.top >= -60 && rect.top < window.innerHeight / 2) {
+                            highlightNav(id);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found && allSectionIds.length > 0) {
+                    highlightNav(allSectionIds[0]);
+                }
+            }, 300);
+
+            console.log('✅ 西柚数据清洗打标工具 · 操作指南 v2.0 已就绪');
+            console.log('   一、使用流程  |  二、打标规则  |  三、注意事项');
+        })();
+    </script>
+</body>
+</html>
