@@ -16,8 +16,8 @@
             --primary: #FF6A00;
             --primary-hover: #FF8533;
             --primary-glow: rgba(255, 106, 0, 0.45);
-            --bg: #F6F7F9;
-            --card-bg: rgba(255, 255, 255, 0.85);
+            --bg: #F3EFEA; /* 参考图1的暖米色背景 */
+            --card-bg: rgba(255, 255, 255, 0.9);
             --text: #1A1F2B;
             --text-muted: #676E7D;
             --border: rgba(255, 255, 255, 0.3);
@@ -34,7 +34,7 @@
 
         body {
             font-family: var(--font-family);
-            background: radial-gradient(circle at 10% 20%, #FAFBFC 0%, #EEF2F7 100%);
+            background: var(--bg);
             color: var(--text);
             min-height: 100vh;
             line-height: 1.6;
@@ -55,7 +55,7 @@
             padding: 16px 0;
             backdrop-filter: blur(12px);
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.6);
             padding: 20px 24px;
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border);
@@ -67,19 +67,26 @@
             gap: 14px;
         }
 
+        /* ================= 替换为参考图1风格的西柚图标 ================= */
         .logo {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, #FF8533 0%, #FF6A00 100%);
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 20px;
-            font-weight: 700;
             box-shadow: 0 8px 20px -6px rgba(255, 106, 0, 0.4);
+            /* 恢复橙色背景以衬托白色线条 */
+            background: linear-gradient(135deg, #FF8533, #FF6A00);
+            position: relative;
         }
+
+        .logo svg {
+            width: 70%;
+            height: 70%;
+            display: block;
+        }
+        /* =============================================================== */
 
         .logo-text h1 {
             font-size: 22px;
@@ -209,7 +216,7 @@
         }
 
         .upload-item {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.6);
             border-radius: 16px;
@@ -650,7 +657,21 @@
     <div class="app-container">
         <header>
             <div class="logo-section">
-                <div class="logo">XT</div>
+                <!-- 修改点：Logo替换为参考图1风格的西柚图标 -->
+                <div class="logo">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 西柚外轮廓 -->
+                        <path d="M 35 45 C 5 45 5 85 35 85 C 65 85 75 70 70 55" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+                        <!-- 西柚内部细节弧线 -->
+                        <path d="M 45 65 A 15 15 0 0 1 60 60" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+                        <!-- 西柚果核/籽点 -->
+                        <circle cx="35" cy="75" r="3.5" fill="white"/>
+                        <!-- 左侧叶子 (实心填充) -->
+                        <path d="M 45 35 C 30 35 30 15 45 10 C 55 15 55 35 45 35" fill="white"/>
+                        <!-- 右侧叶子 (实心填充) -->
+                        <path d="M 65 25 C 50 25 50 10 65 5 C 75 10 75 25 65 25" fill="white"/>
+                    </svg>
+                </div>
                 <div class="logo-text">
                     <h1>西柚数据清洗+ST打标工具</h1>
                     <p>数据清洗 · ASIN关联 · 智能打标</p>
@@ -1517,19 +1538,19 @@
                 }
             }
 
-            // ----------------- 此处重定义输出列的顺序 -----------------
+            // 强制列顺序
             const finalResult = result.map(row => {
                 const orderedKeys = [];
                 const seen = new Set();
 
-                // 1. 首先是关键词列
+                // 1. 关键词
                 const kwCol = '关键词';
                 if (row.hasOwnProperty(kwCol)) {
                     orderedKeys.push(kwCol);
                     seen.add(kwCol);
                 }
 
-                // 2. 紧接着是：大分类 与 分组1,分组2...
+                // 2. 大分类 与 分组
                 if (row.hasOwnProperty(catCol)) {
                     orderedKeys.push(catCol);
                     seen.add(catCol);
@@ -1541,7 +1562,7 @@
                     }
                 }
 
-                // 3. 然后是打标相关列
+                // 3. 标签列
                 for (const tag of tagOrder) {
                     if (row.hasOwnProperty(tag) && !seen.has(tag)) {
                         orderedKeys.push(tag);
@@ -1549,7 +1570,7 @@
                     }
                 }
 
-                // 4. 最后是其他所有散落/未定义的列
+                // 4. 其他列
                 for (const key of Object.keys(row)) {
                     if (!seen.has(key)) {
                         orderedKeys.push(key);
