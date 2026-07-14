@@ -1,1893 +1,3787 @@
+
 <!DOCTYPE html>
+
 <html lang="zh-CN">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>西柚数据清洗+ST打标工具</title>
+
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
+
         * {
+
             margin: 0;
+
             padding: 0;
+
             box-sizing: border-box;
+
         }
 
+
+
         :root {
+
             --primary: #FF6A00;
+
             --primary-hover: #FF8533;
+
             --primary-glow: rgba(255, 106, 0, 0.45);
+
             --bg: #F3EFEA; /* 参考图1的暖米色背景 */
+
             --card-bg: rgba(255, 255, 255, 0.9);
+
             --text: #1A1F2B;
+
             --text-muted: #676E7D;
+
             --border: rgba(255, 255, 255, 0.3);
+
             --success: #00B894;
+
             --warning: #FDCB6E;
+
             --danger: #FF6B6B;
+
             --font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
             --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
+
             --shadow-md: 0 10px 30px -8px rgba(0, 0, 0, 0.08);
+
             --shadow-lg: 0 20px 48px -12px rgba(0, 0, 0, 0.12);
+
         }
+
+
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+
+
         body {
+
             font-family: var(--font-family);
+
             background: var(--bg);
+
             color: var(--text);
+
             min-height: 100vh;
+
             line-height: 1.6;
+
             padding: 24px;
+
         }
+
+
 
         .app-container {
+
             max-width: 1400px;
+
             margin: 0 auto;
+
             padding: 0;
+
         }
+
+
 
         header {
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             margin-bottom: 28px;
+
             padding: 16px 0;
+
             backdrop-filter: blur(12px);
+
             border-radius: 20px;
+
             background: rgba(255, 255, 255, 0.6);
+
             padding: 20px 24px;
+
             box-shadow: var(--shadow-sm);
+
             border: 1px solid var(--border);
+
         }
+
+
 
         .logo-section {
+
             display: flex;
+
             align-items: center;
+
             gap: 14px;
+
         }
+
+
 
         /* ================= 替换为参考图1风格的西柚图标 ================= */
+
         .logo {
+
             width: 44px;
+
             height: 44px;
+
             border-radius: 14px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             box-shadow: 0 8px 20px -6px rgba(255, 106, 0, 0.4);
+
             /* 恢复橙色背景以衬托白色线条 */
+
             background: linear-gradient(135deg, #FF8533, #FF6A00);
+
             position: relative;
+
         }
+
+
 
         .logo svg {
+
             width: 70%;
+
             height: 70%;
+
             display: block;
+
         }
+
         /* =============================================================== */
 
+
+
         .logo-text h1 {
+
             font-size: 22px;
+
             font-weight: 700;
+
             color: var(--text);
+
         }
+
+
 
         .logo-text p {
+
             font-size: 13px;
+
             color: var(--text-muted);
+
         }
+
+
 
         .header-actions {
+
             display: flex;
+
             gap: 12px;
+
         }
+
+
 
         /* ================= 高级悬浮按钮 ================= */
+
         .btn {
+
             padding: 10px 22px;
+
             border-radius: 12px;
+
             font-size: 14px;
+
             font-weight: 500;
+
             cursor: pointer;
+
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
             border: 1px solid transparent;
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 6px;
+
             position: relative;
+
         }
+
+
 
         .btn-primary {
+
             background: linear-gradient(135deg, #FF9A44 0%, #FF6A00 100%);
+
             color: white;
+
             box-shadow: 0 4px 16px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
             border: 1px solid rgba(255, 255, 255, 0.3);
+
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
         }
+
+
 
         .btn-primary:hover:not(:disabled) {
+
             transform: translateY(-3px) scale(1.02);
+
             background: linear-gradient(135deg, #FFAD5C 0%, #FF8533 100%);
+
             box-shadow: 0 8px 28px rgba(255, 106, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
             border-color: rgba(255, 255, 255, 0.6);
+
         }
+
+
 
         .btn-primary:disabled {
+
             background: #FFD8B8;
+
             box-shadow: none;
+
             cursor: not-allowed;
+
             transform: none;
+
             color: rgba(255, 255, 255, 0.7);
+
         }
+
+
 
         .btn-secondary {
+
             background: rgba(255, 255, 255, 0.7);
+
             backdrop-filter: blur(12px);
+
             -webkit-backdrop-filter: blur(12px);
+
             color: var(--text);
+
             border: 1px solid rgba(255, 255, 255, 0.8);
+
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+
         }
+
+
 
         .btn-secondary:hover {
+
             background: rgba(255, 255, 255, 0.95);
+
             border-color: var(--primary);
+
             color: var(--primary);
+
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+
             transform: translateY(-2px);
+
         }
+
+
 
         .btn-ghost {
+
             background: transparent;
+
             color: var(--text-muted);
+
             padding: 8px 16px;
+
         }
+
+
 
         .btn-ghost:hover {
+
             background: rgba(255, 255, 255, 0.5);
+
             color: var(--text);
+
             backdrop-filter: blur(4px);
+
         }
+
+
 
         .btn-icon {
+
             width: 40px;
+
             height: 40px;
+
             padding: 0;
+
             border-radius: 12px;
+
             justify-content: center;
+
         }
+
         /* ================================================== */
 
+
+
         .upload-card {
+
             background: var(--card-bg);
+
             backdrop-filter: blur(12px);
+
             border-radius: 20px;
+
             padding: 24px;
+
             box-shadow: var(--shadow-md);
+
             border: 1px solid var(--border);
+
             margin-bottom: 24px;
+
         }
+
+
 
         .card-title {
+
             font-size: 15px;
+
             font-weight: 600;
+
             margin-bottom: 16px;
+
             color: var(--text);
+
             display: flex;
+
             align-items: center;
+
             gap: 8px;
+
         }
+
+
 
         .card-title::before {
+
             content: '';
+
             width: 4px;
+
             height: 16px;
+
             background: var(--primary);
+
             border-radius: 2px;
+
             box-shadow: 0 0 8px var(--primary-glow);
+
         }
+
+
 
         .upload-grid {
+
             display: grid;
+
             grid-template-columns: repeat(4, 1fr);
+
             gap: 16px;
+
         }
+
+
 
         .upload-item {
+
             background: rgba(255, 255, 255, 0.4);
+
             backdrop-filter: blur(8px);
+
             border: 1px solid rgba(255, 255, 255, 0.6);
+
             border-radius: 16px;
+
             padding: 20px;
+
             cursor: pointer;
+
             transition: all 0.2s ease;
+
             position: relative;
+
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
         }
+
+
 
         .upload-item:hover {
+
             border-color: var(--primary);
+
             background: rgba(255, 106, 0, 0.06);
+
             box-shadow: 0 4px 16px rgba(255, 106, 0, 0.08);
+
             transform: translateY(-2px);
+
         }
+
+
 
         .upload-item.has-file {
+
             border-color: var(--success);
+
             background: rgba(0, 184, 148, 0.06);
+
         }
+
+
 
         .upload-item.optional {
+
             opacity: 0.7;
+
         }
+
+
 
         .upload-item input[type="file"] {
+
             position: absolute;
+
             inset: 0;
+
             opacity: 0;
+
             cursor: pointer;
+
             width: 100%;
+
             height: 100%;
+
         }
+
+
 
         .upload-icon {
+
             width: 40px;
+
             height: 40px;
+
             border-radius: 12px;
+
             background: rgba(255, 255, 255, 0.6);
+
             backdrop-filter: blur(4px);
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             margin-bottom: 12px;
+
             font-size: 18px;
+
         }
+
+
 
         .upload-item.has-file .upload-icon {
+
             background: rgba(0, 184, 148, 0.1);
+
             color: var(--success);
+
         }
+
+
 
         .upload-label {
+
             font-size: 14px;
+
             font-weight: 500;
+
             color: var(--text);
+
             margin-bottom: 4px;
+
             display: block;
+
         }
+
+
 
         .upload-hint {
+
             font-size: 12px;
+
             color: var(--text-muted);
+
             display: block;
+
         }
+
+
 
         .upload-filename {
+
             font-size: 12px;
+
             color: var(--success);
+
             margin-top: 8px;
+
             display: block;
+
             word-break: break-all;
+
             font-weight: 500;
+
         }
+
+
 
         .upload-remove {
+
             position: absolute;
+
             top: 8px;
+
             right: 8px;
+
             width: 24px;
+
             height: 24px;
+
             background: rgba(255, 107, 107, 0.1);
+
             color: var(--danger);
+
             border: none;
+
             border-radius: 50%;
+
             font-size: 12px;
+
             cursor: pointer;
+
             display: none;
+
             align-items: center;
+
             justify-content: center;
+
             transition: background 0.2s;
+
         }
+
         
+
         .upload-remove:hover {
+
             background: rgba(255, 107, 107, 0.2);
+
         }
+
+
 
         .upload-item.has-file:hover .upload-remove {
+
             display: flex;
+
         }
+
+
 
         .action-bar {
+
             background: var(--card-bg);
+
             backdrop-filter: blur(12px);
+
             border-radius: 20px;
+
             padding: 16px 24px;
+
             box-shadow: var(--shadow-md);
+
             border: 1px solid var(--border);
+
             margin-bottom: 24px;
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
         }
+
+
 
         .mode-indicator {
+
             font-size: 13px;
+
             color: var(--text-muted);
+
         }
+
+
 
         .mode-indicator span {
+
             color: var(--primary);
+
             font-weight: 600;
+
         }
+
+
 
         .result-tabs {
+
             display: flex;
+
             gap: 8px;
+
             margin-bottom: 16px;
+
             background: var(--card-bg);
+
             padding: 6px;
+
             border-radius: 16px;
+
             box-shadow: var(--shadow-sm);
+
             border: 1px solid var(--border);
+
             backdrop-filter: blur(8px);
+
         }
+
+
 
         .tab-btn {
+
             padding: 10px 20px;
+
             border: none;
+
             background: transparent;
+
             border-radius: 12px;
+
             font-size: 14px;
+
             font-weight: 500;
+
             color: var(--text-muted);
+
             cursor: pointer;
+
             transition: all 0.2s ease;
+
         }
+
+
 
         .tab-btn.active {
+
             background: linear-gradient(135deg, #FF8533 0%, #FF6A00 100%);
+
             color: white;
+
             box-shadow: 0 4px 12px var(--primary-glow);
+
         }
+
+
 
         .tab-btn:hover:not(.active) {
+
             background: rgba(255, 255, 255, 0.5);
+
             color: var(--text);
+
         }
+
+
 
         .tab-content {
+
             display: none;
+
         }
+
+
 
         .tab-content.active {
+
             display: block;
+
         }
+
+
 
         .table-container {
+
             background: var(--card-bg);
+
             backdrop-filter: blur(12px);
+
             border-radius: 20px;
+
             box-shadow: var(--shadow-lg);
+
             border: 1px solid var(--border);
+
             overflow: hidden;
+
             display: flex;
+
             flex-direction: column;
+
         }
+
+
 
         .table-header {
+
             padding: 16px 20px;
+
             border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             flex-shrink: 0;
+
         }
+
+
 
         .table-title {
+
             font-size: 14px;
+
             font-weight: 600;
+
             color: var(--text);
+
         }
+
+
 
         .table-info {
+
             font-size: 12px;
+
             color: var(--text-muted);
+
             margin-left: 12px;
+
         }
+
+
 
         .table-scroll {
+
             overflow-x: auto;
+
             -webkit-overflow-scrolling: touch;
+
         }
+
+
 
         .table-wrapper {
+
             max-height: 500px;
+
             overflow-y: auto;
+
             -webkit-overflow-scrolling: touch;
+
         }
+
+
 
         table {
+
             width: 100%;
+
             min-width: max-content;
+
             border-collapse: collapse;
+
             font-size: 13px;
+
             table-layout: auto;
+
         }
+
+
 
         th {
+
             background: rgba(250, 251, 252, 0.7);
+
             padding: 12px 16px;
+
             text-align: left;
+
             font-weight: 600;
+
             color: var(--text-muted);
+
             white-space: nowrap;
+
             position: sticky;
+
             top: 0;
+
             z-index: 1;
+
             border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
         }
+
+
 
         td {
+
             padding: 10px 16px;
+
             border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+
             white-space: nowrap;
+
             color: var(--text);
+
         }
+
+
 
         tr:hover td {
+
             background: rgba(255, 255, 255, 0.5);
+
         }
+
+
 
         .tag-cell {
+
             background: rgba(255, 106, 0, 0.08);
+
             color: var(--primary);
+
             padding: 4px 10px;
+
             border-radius: 6px;
+
             font-size: 12px;
+
             font-weight: 500;
+
             display: inline-block;
+
         }
+
+
 
         .status-dot {
+
             width: 8px;
+
             height: 8px;
+
             border-radius: 50%;
+
             display: inline-block;
+
             margin-right: 6px;
+
         }
+
+
 
         .status-ready { background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
+
         .status-processing { background: var(--warning); animation: pulse 1.5s infinite; box-shadow: 0 0 8px var(--warning); }
+
         .status-success { background: var(--success); }
+
         .status-error { background: var(--danger); }
 
+
+
         @keyframes pulse {
+
             0%, 100% { opacity: 1; transform: scale(1); }
+
             50% { opacity: 0.6; transform: scale(1.2); }
+
         }
+
+
 
         .empty-state {
+
             text-align: center;
+
             padding: 60px 20px;
+
             color: var(--text-muted);
+
         }
+
+
 
         .empty-icon {
+
             font-size: 48px;
+
             margin-bottom: 16px;
+
             opacity: 0.5;
+
         }
+
+
 
         .empty-title {
+
             font-size: 16px;
+
             font-weight: 500;
+
             margin-bottom: 8px;
+
             color: var(--text);
+
         }
+
+
 
         .empty-desc {
+
             font-size: 14px;
+
         }
+
+
 
         .loading-overlay {
+
             position: fixed;
+
             inset: 0;
+
             background: rgba(255, 255, 255, 0.8);
+
             backdrop-filter: blur(8px);
+
             display: none;
+
             align-items: center;
+
             justify-content: center;
+
             z-index: 1000;
+
         }
+
+
 
         .loading-content {
+
             text-align: center;
+
         }
+
+
 
         .loading-spinner {
+
             width: 48px;
+
             height: 48px;
+
             border: 4px solid rgba(0, 0, 0, 0.05);
+
             border-top-color: var(--primary);
+
             border-radius: 50%;
+
             animation: spin 1s linear infinite;
+
             margin: 0 auto 16px;
+
         }
+
+
 
         @keyframes spin {
+
             to { transform: rotate(360deg); }
+
         }
+
+
 
         .loading-text {
+
             font-size: 14px;
+
             color: var(--text-muted);
+
         }
+
+
 
         .modal-overlay {
+
             position: fixed;
+
             inset: 0;
+
             background: rgba(0, 0, 0, 0.4);
+
             backdrop-filter: blur(4px);
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             z-index: 1000;
+
             opacity: 0;
+
             pointer-events: none;
+
             transition: opacity 0.2s ease;
+
         }
+
+
 
         .modal-overlay.show {
+
             opacity: 1;
+
             pointer-events: auto;
+
         }
+
+
 
         .modal {
+
             background: var(--card-bg);
+
             border-radius: 20px;
+
             padding: 24px;
+
             max-width: 500px;
+
             width: 90%;
+
             transform: scale(0.9);
+
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+
             box-shadow: var(--shadow-lg);
+
             backdrop-filter: blur(12px);
+
             border: 1px solid var(--border);
+
         }
+
+
 
         .modal-overlay.show .modal {
+
             transform: scale(1);
+
         }
+
+
 
         .modal-title {
+
             font-size: 18px;
+
             font-weight: 600;
+
             margin-bottom: 8px;
+
         }
+
+
 
         .modal-desc {
+
             font-size: 14px;
+
             color: var(--text-muted);
+
             margin-bottom: 20px;
+
         }
+
+
 
         .modal-actions {
+
             display: flex;
+
             gap: 12px;
+
             justify-content: flex-end;
+
         }
+
+
 
         .template-preview {
+
             background: rgba(255, 255, 255, 0.6);
+
             border-radius: 12px;
+
             padding: 12px;
+
             margin-bottom: 16px;
+
             max-height: 300px;
+
             overflow-y: auto;
+
             border: 1px solid var(--border);
+
         }
+
+
 
         .template-row {
+
             display: grid;
+
             grid-template-columns: 80px 120px 100px 1fr;
+
             gap: 8px;
+
             padding: 6px 0;
+
             border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
             font-size: 12px;
+
         }
+
+
 
         .template-row:last-child {
+
             border-bottom: none;
+
         }
+
+
 
         .template-row.header {
+
             font-weight: 600;
+
             color: var(--text-muted);
+
         }
+
+
 
         @media (max-width: 1200px) {
+
             .upload-grid {
+
                 grid-template-columns: repeat(2, 1fr);
+
             }
+
         }
+
+
 
         @media (max-width: 768px) {
+
             .upload-grid {
+
                 grid-template-columns: 1fr;
+
             }
+
+
 
             header {
+
                 flex-direction: column;
+
                 align-items: flex-start;
+
                 gap: 16px;
+
             }
+
+
 
             .action-bar {
+
                 flex-direction: column;
+
                 gap: 12px;
+
                 align-items: stretch;
+
             }
+
+
 
             .header-actions {
+
                 width: 100%;
+
                 flex-wrap: wrap;
+
             }
+
+
 
             .btn {
+
                 flex: 1;
+
                 min-width: 120px;
+
                 justify-content: center;
+
             }
+
         }
+
     </style>
+
 </head>
+
 <body>
+
     <div class="app-container">
+
         <header>
+
             <div class="logo-section">
+
                 <!-- 修改点：Logo替换为参考图1风格的西柚图标 -->
+
                 <div class="logo">
+
                     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+
                         <!-- 西柚外轮廓 -->
+
                         <path d="M 35 45 C 5 45 5 85 35 85 C 65 85 75 70 70 55" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+
                         <!-- 西柚内部细节弧线 -->
+
                         <path d="M 45 65 A 15 15 0 0 1 60 60" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+
                         <!-- 西柚果核/籽点 -->
+
                         <circle cx="35" cy="75" r="3.5" fill="white"/>
+
                         <!-- 左侧叶子 (实心填充) -->
+
                         <path d="M 45 35 C 30 35 30 15 45 10 C 55 15 55 35 45 35" fill="white"/>
+
                         <!-- 右侧叶子 (实心填充) -->
+
                         <path d="M 65 25 C 50 25 50 10 65 5 C 75 10 75 25 65 25" fill="white"/>
+
                     </svg>
+
                 </div>
+
                 <div class="logo-text">
+
                     <h1>西柚数据清洗+ST打标工具</h1>
+
                     <p>数据清洗 · ASIN关联 · 智能打标</p>
+
                 </div>
+
             </div>
+
             <div class="header-actions">
+
                 <button class="btn btn-secondary" onclick="showTemplateModal()">📋 生成规则模板</button>
+
                 <button class="btn btn-secondary" onclick="exportResults()" id="exportBtn" disabled>📤 导出结果</button>
+
             </div>
+
         </header>
 
+
+
         <div class="upload-card">
+
             <div class="card-title">文件上传</div>
+
             <div class="upload-grid">
+
                 <div class="upload-item" id="xiyouFolder">
+
                     <input type="file" id="xiyouFile" accept=".xlsx,.xls" multiple onchange="handleXiyouUpload(this)">
+
                     <div class="upload-icon">📁</div>
+
                     <div class="upload-label">西柚数据文件</div>
+
                     <div class="upload-hint">支持多选Excel文件</div>
+
                     <div class="upload-filename" id="xiyouFilename"></div>
+
                     <button class="upload-remove" onclick="clearUpload('xiyou')">✕</button>
+
                 </div>
+
                 <div class="upload-item" id="mappingItem">
+
                     <input type="file" id="mappingFile" accept=".xlsx,.xls" onchange="handleMappingUpload(this)">
+
                     <div class="upload-icon">🔗</div>
+
                     <div class="upload-label">ASIN Mapping</div>
+
                     <div class="upload-filename" id="mappingFilename"></div>
+
                     <button class="upload-remove" onclick="clearUpload('mapping')">✕</button>
+
                 </div>
+
                 <div class="upload-item optional" id="keywordsItem">
+
                     <input type="file" id="keywordsFile" accept=".xlsx,.xls" onchange="handleKeywordsUpload(this)">
+
                     <div class="upload-icon">📝</div>
+
                     <div class="upload-label">关键词数据表</div>
+
                     <div class="upload-hint">包含关键词列（可选）</div>
+
                     <div class="upload-filename" id="keywordsFilename"></div>
+
                     <button class="upload-remove" onclick="clearUpload('keywords')">✕</button>
+
                 </div>
+
                 <div class="upload-item" id="rulesItem">
+
                     <input type="file" id="rulesFile" accept=".xlsx,.xls" onchange="handleRulesUpload(this)">
+
                     <div class="upload-icon">🏷️</div>
+
                     <div class="upload-label">打标规则表</div>
+
                     <div class="upload-hint">按模板填写的规则</div>
+
                     <div class="upload-filename" id="rulesFilename"></div>
+
                     <button class="upload-remove" onclick="clearUpload('rules')">✕</button>
+
                 </div>
+
             </div>
+
         </div>
+
+
 
         <div class="action-bar">
+
             <div class="mode-indicator">
+
                 <span class="status-dot status-ready" id="statusDot"></span>
+
                 <span id="modeText">请上传文件</span>
+
             </div>
+
             <button class="btn btn-primary" id="startBtn" onclick="startProcessing()" disabled>
+
                 ▶ 开始处理
+
             </button>
+
         </div>
+
+
 
         <div class="result-tabs">
+
             <button class="tab-btn active" onclick="switchTab('rules')">📋 规则列表</button>
+
             <button class="tab-btn" onclick="switchTab('xiyou')">📊 西柚数据预览</button>
+
             <button class="tab-btn" onclick="switchTab('keywords')">🏷️ 关键词打标预览</button>
+
         </div>
+
+
 
         <div class="tab-content active" id="tab-rules">
+
             <div class="table-container">
+
                 <div class="table-header">
+
                     <span class="table-title">打标规则</span>
+
                     <span class="table-info" id="rulesInfo">未加载规则</span>
+
                 </div>
+
                 <div class="table-scroll">
+
                     <div class="table-wrapper">
+
                         <table id="rulesTable">
+
                             <thead>
+
                                 <tr>
+
                                     <th>优先级</th>
+
                                     <th>标签名称</th>
+
                                     <th>匹配模式</th>
+
                                     <th>关键词</th>
+
                                     <th>否定关键词</th>
+
                                     <th>忽略大小写</th>
+
                                     <th>输出值</th>
+
                                     <th>分类</th>
+
                                 </tr>
+
                             </thead>
+
                             <tbody>
+
                                 <tr>
+
                                     <td colspan="8" class="empty-state">
+
                                         <div class="empty-icon">📋</div>
+
                                         <div class="empty-title">暂无规则</div>
+
                                         <div class="empty-desc">请上传打标规则表或生成模板</div>
+
                                     </td>
+
                                 </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
+
 
         <div class="tab-content" id="tab-xiyou">
+
             <div class="table-container">
+
                 <div class="table-header">
+
                     <span class="table-title">西柚数据预览</span>
+
                     <span class="table-info" id="xiyouInfo">尚未处理</span>
+
                 </div>
+
                 <div class="table-scroll">
+
                     <div class="table-wrapper">
+
                         <table id="xiyouTable">
+
                             <tbody>
+
                                 <tr>
+
                                     <td colspan="4" class="empty-state">
+
                                         <div class="empty-icon">📊</div>
+
                                         <div class="empty-title">暂无数据</div>
+
                                         <div class="empty-desc">请上传西柚数据和mapping表后开始处理</div>
+
                                     </td>
+
                                 </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
+
 
         <div class="tab-content" id="tab-keywords">
+
             <div class="table-container">
+
                 <div class="table-header">
+
                     <span class="table-title">关键词打标预览</span>
+
                     <span class="table-info" id="keywordsInfo">尚未处理</span>
+
                 </div>
+
                 <div class="table-scroll">
+
                     <div class="table-wrapper">
+
                         <table id="keywordsTable">
+
                             <tbody>
+
                                 <tr>
+
                                     <td colspan="4" class="empty-state">
+
                                         <div class="empty-icon">🏷️</div>
+
                                         <div class="empty-title">暂无数据</div>
+
                                         <div class="empty-desc">请上传关键词数据表后开始处理</div>
+
                                     </td>
+
                                 </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
+
 
     <div class="loading-overlay" id="loadingOverlay">
+
         <div class="loading-content">
+
             <div class="loading-spinner"></div>
+
             <div class="loading-text" id="loadingText">正在处理...</div>
+
         </div>
+
     </div>
+
+
 
     <div class="modal-overlay" id="templateModal">
+
         <div class="modal">
+
             <div class="modal-title">📋 打标规则模板</div>
+
             <div class="modal-desc">点击下方按钮下载预设的打标规则模板，包含13条常用规则。</div>
+
             <div class="template-preview" id="templatePreview"></div>
+
             <div class="modal-actions">
+
                 <button class="btn btn-secondary" onclick="closeTemplateModal()">取消</button>
+
                 <button class="btn btn-primary" onclick="downloadTemplate()">下载模板</button>
+
             </div>
+
         </div>
+
     </div>
 
+
+
     <script>
+
         const TARGET_COLUMNS = [
+
             '站点', 'asin', '品牌', '产品系列', '周期',
+
             '关键词 (数据来源于西柚找词)', '翻译', '周搜索量去重', '周平均搜索量',
+
             '流量', '自然流量', '广告流量', '流量占比', '自然流量占比', '广告流量占比',
+
             '流量获得率', '自然流量获得率', '广告流量获得率',
+
             '流量分布(自然)', '流量分布(广告)', '展示位置',
+
             '自然排名', '自然排名(页码-页内排名)', '抓取时间',
+
             'SP广告排名', 'SP广告排名(页码-页内排名)', '抓取时间1',
+
             '周平均关键词排名', 'CPC建议竞价($)', '建议竞价范围($)',
+
             '点击转化率(均值)', '周平均竞争难度', '竞争难度档位',
+
             '自然位滚动率', 'Top3周平均点击份额', 'Top3周平均转化份额', 'Top3 ASIN',
+
         ];
+
+
 
         const TAG_OUTPUT_COLUMN = {
+
             '品牌词': '品牌词',
+
             '竞品词': '竞品品牌',
+
             '机型': '机型',
+
             'case/cover': '否词',
+
             'screen protector': 'screen protector',
+
             'tempered glass': 'glass',
+
             'camera lens': 'camera lens',
+
             'privacy': 'privacy',
+
             '磁吸': '磁吸',
+
             '透明': '透明',
+
             '硅胶': '硅胶',
+
             '支架': '支架',
+
         };
 
+
+
         const FINAL_TAG_COLUMNS = [
+
             '分类', 'screen protector', '品牌词', '竞品品牌',
+
             '机型', 'camera lens', 'privacy', 'glass', '否词'
+
         ];
 
+
+
         let xiyouFiles = [];
+
         let mappingData = null;
+
         let keywordsData = null;
+
         let rules = [];
+
         let cleanedResult = null;
+
         let tagResult = null;
+
         let keywordTagResult = null;
 
+
+
         function handleXiyouUpload(input) {
+
             if (input.files.length > 0) {
+
                 xiyouFiles = Array.from(input.files);
+
                 document.getElementById('xiyouFolder').classList.add('has-file');
+
                 document.getElementById('xiyouFilename').textContent = `已选择 ${xiyouFiles.length} 个文件`;
+
             }
+
             updateMode();
+
         }
+
+
 
         function handleMappingUpload(input) {
+
             if (input.files.length > 0) {
+
                 readExcel(input.files[0], (data) => {
+
                     mappingData = data;
+
                     document.getElementById('mappingItem').classList.add('has-file');
+
                     document.getElementById('mappingFilename').textContent = input.files[0].name;
+
                     updateMode();
+
                 });
+
             }
+
         }
+
+
 
         function handleKeywordsUpload(input) {
+
             if (input.files.length > 0) {
+
                 readExcel(input.files[0], (data) => {
+
                     keywordsData = loadKeywordsData(data);
+
                     document.getElementById('keywordsItem').classList.add('has-file');
+
                     document.getElementById('keywordsFilename').textContent = input.files[0].name;
+
                     updateMode();
+
                 });
+
             }
+
         }
+
+
 
         function loadKeywordsData(data) {
+
             if (!data || data.length === 0) return [];
+
             const cols = Object.keys(data[0]);
+
             let kwCol = null;
+
             for (const col of cols) {
+
                 if (col === '关键词' || col.toLowerCase().includes('keyword') || col.includes('搜索词')) {
+
                     kwCol = col;
+
                     break;
+
                 }
+
             }
+
             if (!kwCol) kwCol = cols[0];
 
+
+
             const seen = new Set();
+
             const result = [];
+
             for (const row of data) {
+
                 const kw = String(row[kwCol] || '').trim();
+
                 if (kw && !seen.has(kw)) {
+
                     seen.add(kw);
+
                     result.push({ '关键词': kw });
+
                 }
+
             }
+
             return result;
+
         }
+
+
 
         function handleRulesUpload(input) {
+
             if (input.files.length > 0) {
+
                 readExcel(input.files[0], (data) => {
+
                     rules = loadRules(data);
+
                     document.getElementById('rulesItem').classList.add('has-file');
+
                     document.getElementById('rulesFilename').textContent = input.files[0].name;
+
                     showRulesPreview();
+
                     updateMode();
+
                 });
+
             }
+
         }
+
+
 
         function readExcel(file, callback) {
+
             const reader = new FileReader();
+
             reader.onload = function(e) {
+
                 try {
+
                     const data = new Uint8Array(e.target.result);
+
                     const workbook = XLSX.read(data, { type: 'array' });
+
                     const sheetName = workbook.SheetNames[0];
+
                     const worksheet = workbook.Sheets[sheetName];
+
                     const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
                     const headers = json[0].map(h => String(h).trim());
+
                     const rows = json.slice(1).map(row => {
+
                         const obj = {};
+
                         row.forEach((val, idx) => {
+
                             obj[headers[idx]] = val !== undefined ? String(val).trim() : '';
+
                         });
+
                         return obj;
+
                     }).filter(row => Object.values(row).some(v => v));
+
                     callback(rows);
+
                 } catch (err) {
+
                     alert('读取Excel失败：' + err.message);
+
                 }
+
             };
+
             reader.readAsArrayBuffer(file);
+
         }
+
+
 
         function detectGroupColumns(cols) {
+
             const levelMap = {};
+
             for (const col of cols) {
+
                 const c = col.trim();
+
                 let m = c.match(/^分组值(\d*)$/);
+
                 if (m) {
+
                     const suffix = m[1];
+
                     const level = suffix ? parseInt(suffix) : 1;
+
                     if (!(level in levelMap)) levelMap[level] = c;
+
                     continue;
+
                 }
+
                 m = c.match(/^分组值\.(\d+)$/);
+
                 if (m) {
+
                     const level = parseInt(m[1]) + 1;
+
                     if (!(level in levelMap)) levelMap[level] = c;
+
                     continue;
+
                 }
+
                 m = c.match(/^分组(\d+)$/);
+
                 if (m) {
+
                     const level = parseInt(m[1]);
+
                     if (!(level in levelMap)) levelMap[level] = c;
+
                     continue;
+
                 }
+
             }
+
             return Object.keys(levelMap).sort((a, b) => parseInt(a) - parseInt(b)).map(k => levelMap[k]);
+
         }
+
+
 
         function normalizeGroupValues(gv) {
+
             if (!gv) return [];
+
             if (typeof gv === 'string') {
+
                 const s = gv.trim();
+
                 if (!s || s.toLowerCase() === 'nan' || s.toLowerCase() === 'none' || s.toLowerCase() === 'null' || s === '-') return [];
+
                 return [s];
+
             }
+
             const result = [];
+
             for (const item of gv) {
+
                 if (item === null || item === undefined) continue;
+
                 const s = String(item).trim();
+
                 if (!s || s.toLowerCase() === 'nan' || s.toLowerCase() === 'none' || s.toLowerCase() === 'null' || s === '-') continue;
+
                 result.push(s);
+
             }
+
             return result;
+
         }
 
+
+
         function loadRules(data) {
+
             const result = [];
+
             if (data.length === 0) return result;
 
+
+
             const cols = Object.keys(data[0]);
+
             const hasLabel = cols.some(c => c === '标签名称');
+
             if (!hasLabel) {
+
                 alert('规则表格式不正确，必须包含「标签名称」列');
+
                 return [];
+
             }
+
+
 
             const groupCols = detectGroupColumns(cols);
 
+
+
             for (const row of data) {
+
                 const tag = String(row['标签名称'] || '').trim();
+
                 const kw = String(row['关键词'] || '').trim();
+
                 if (!tag || !kw) continue;
 
+
+
                 const mode = normalizeMode(row['匹配模式']);
+
                 const keywords = splitKeywords(kw, mode);
+
                 const negKeywords = splitKeywords(row['否定关键词'] || '', '包含任一');
+
                 const ignoreCase = parseBool(row['忽略大小写'] !== undefined ? row['忽略大小写'] : true);
+
                 const priority = parseInt(row['优先级']) || 9999;
+
                 let outputValue = String(row['输出值'] || '').trim();
+
                 if (outputValue.toLowerCase() === 'nan' || outputValue.toLowerCase() === 'none' || outputValue.toLowerCase() === 'null') outputValue = '';
+
                 let category = String(row['分类'] || '').trim();
+
                 if (category.toLowerCase() === 'nan' || category.toLowerCase() === 'none' || category.toLowerCase() === 'null' || category === '-') category = '';
+
                 let categoryPriority = 9999;
+
                 try {
+
                     const cpRaw = String(row['分类优先级'] || '').trim();
+
                     categoryPriority = cpRaw && cpRaw.toLowerCase() !== 'nan' && cpRaw.toLowerCase() !== 'none' ? parseInt(parseFloat(cpRaw)) : 9999;
+
                 } catch (e) {
+
                     categoryPriority = 9999;
+
                 }
+
+
 
                 const gvList = [];
+
                 for (const gc of groupCols) {
+
                     let val = String(row[gc] || '').trim();
+
                     if (val.toLowerCase() === 'nan' || val.toLowerCase() === 'none' || val.toLowerCase() === 'null' || val === '-') val = '';
+
                     gvList.push(val);
+
                 }
+
                 while (gvList.length > 0 && !gvList[gvList.length - 1]) {
+
                     gvList.pop();
+
                 }
+
+
 
                 result.push({
+
                     ruleId: String(row['规则ID'] || ''),
+
                     tagName: tag,
+
                     mode: mode,
+
                     keywords: keywords.sort((a, b) => b.length - a.length),
+
                     negKeywords: negKeywords,
+
                     ignoreCase: ignoreCase,
+
                     priority: priority,
+
                     outputValue: outputValue,
+
                     category: category,
+
                     categoryPriority: categoryPriority,
+
                     groupValues: gvList
+
                 });
+
             }
+
+
 
             result.sort((a, b) => {
+
                 if (a.priority !== b.priority) return a.priority - b.priority;
+
                 const lenA = a.keywords.length > 0 ? a.keywords[0].length : 0;
+
                 const lenB = b.keywords.length > 0 ? b.keywords[0].length : 0;
+
                 return lenB - lenA;
+
             });
+
             return result;
+
         }
+
+
 
         function normalizeMode(mode) {
+
             const s = String(mode || '包含任一').trim();
+
             const modes = {
+
                 '包含任一': ['or', 'OR', '或', '任一', 'any', '包含', '包含或'],
+
                 '包含全部': ['and', 'AND', '且', '全部', 'all', '必须全部包含', '同时包含'],
+
                 '精确等于': ['equals', '=', '等于', 'exact', '完全等于'],
+
                 '开头是': ['starts_with', 'startswith', 'prefix', '开头', '前缀', '以…开头', '以...开头'],
+
                 '结尾是': ['ends_with', 'endswith', 'suffix', '结尾', '后缀', '以…结尾', '以...结尾'],
+
                 '正则': ['regex', 'Regex', 'REGEX', '正则表达式', 'pattern'],
+
             };
 
+
+
             for (const [canonical, aliases] of Object.entries(modes)) {
+
                 if (s === canonical || aliases.includes(s) || aliases.includes(s.toLowerCase())) {
+
                     return canonical;
+
                 }
+
             }
+
             return '包含任一';
+
         }
+
+
 
         function splitKeywords(raw, mode) {
+
             if (!raw) return [];
+
             let text = String(raw).trim();
+
             if (!text || text.toLowerCase() === 'nan' || text.toLowerCase() === 'none') return [];
 
+
+
             if (mode === '正则') {
+
                 for (const sep of ['\r\n', '\n', ';', '；']) {
+
                     text = text.replace(sep, '\n');
+
                 }
+
                 return text.split('\n').map(k => k.trim()).filter(k => k);
+
             }
+
+
 
             for (const sep of ['，', '、', '/', ';', '；', '|']) {
+
                 text = text.replace(sep, ',');
+
             }
+
             return text.split(',').map(k => k.trim()).filter(k => k);
+
         }
+
+
 
         function parseBool(val) {
+
             if (typeof val === 'boolean') return val;
+
             const s = String(val || '').trim().toLowerCase();
+
             return ['是', 'true', 'yes', 'y', '1', '忽略', 'ignore', '忽略大小写'].includes(s);
+
         }
+
+
 
         function matchRule(rule, text) {
+
             if (!rule.keywords.length || !rule.tagName) return null;
+
             const haystack = String(text || '');
 
+
+
             let hayCheck = haystack;
+
             let kwsForMatch = [...rule.keywords];
+
             let negKws = [...rule.negKeywords];
 
+
+
             if (rule.ignoreCase) {
+
                 hayCheck = hayCheck.toLowerCase();
+
                 kwsForMatch = kwsForMatch.map(k => k.toLowerCase());
+
                 negKws = negKws.map(k => k.toLowerCase());
+
             }
+
+
 
             for (const nk of negKws) {
+
                 if (nk && hayCheck.includes(nk)) return null;
+
             }
+
+
 
             let matchedRaw = null;
+
             switch (rule.mode) {
+
                 case '包含任一':
+
                     for (const kw of kwsForMatch) {
+
                         if (hayCheck.includes(kw)) {
+
                             matchedRaw = rule.ignoreCase ? rule.keywords.find(k => k.toLowerCase() === kw) || kw : kw;
+
                             break;
+
                         }
+
                     }
+
                     break;
+
                 case '包含全部':
+
                     if (kwsForMatch.every(kw => hayCheck.includes(kw))) {
+
                         matchedRaw = rule.keywords[0];
+
                     }
+
                     break;
+
                 case '精确等于':
+
                     for (const kw of kwsForMatch) {
+
                         if (hayCheck === kw || hayCheck.trim() === kw) {
+
                             matchedRaw = rule.ignoreCase ? rule.keywords.find(k => k.toLowerCase() === kw) || kw : kw;
+
                             break;
+
                         }
+
                     }
+
                     break;
+
                 case '开头是':
+
                     for (const kw of kwsForMatch) {
+
                         if (hayCheck.startsWith(kw)) {
+
                             matchedRaw = rule.ignoreCase ? rule.keywords.find(k => k.toLowerCase() === kw) || kw : kw;
+
                             break;
+
                         }
+
                     }
+
                     break;
+
                 case '结尾是':
+
                     for (const kw of kwsForMatch) {
+
                         if (hayCheck.endsWith(kw)) {
+
                             matchedRaw = rule.ignoreCase ? rule.keywords.find(k => k.toLowerCase() === kw) || kw : kw;
+
                             break;
+
                         }
+
                     }
+
                     break;
+
                 case '正则':
+
                     const flags = rule.ignoreCase ? 'i' : '';
+
                     for (const kw of rule.keywords) {
+
                         try {
+
                             const regex = new RegExp(kw, flags);
+
                             const m = haystack.match(regex);
+
                             if (m) {
+
                                 matchedRaw = m[0] || kw;
+
                                 break;
+
                             }
+
                         } catch (e) {
+
                             continue;
+
                         }
+
                     }
+
                     break;
+
                 default:
+
                     for (const kw of kwsForMatch) {
+
                         if (hayCheck.includes(kw)) {
+
                             matchedRaw = rule.ignoreCase ? rule.keywords.find(k => k.toLowerCase() === kw) || kw : kw;
+
                             break;
+
                         }
+
                     }
+
             }
+
+
 
             if (matchedRaw === null) return null;
+
             const cellValue = rule.outputValue || matchedRaw;
+
             return { cellValue, matchedRaw };
+
         }
+
+
 
         function clearUpload(type) {
+
             switch (type) {
+
                 case 'xiyou':
+
                     xiyouFiles = [];
+
                     document.getElementById('xiyouFile').value = '';
+
                     document.getElementById('xiyouFolder').classList.remove('has-file');
+
                     document.getElementById('xiyouFilename').textContent = '';
+
                     break;
+
                 case 'mapping':
+
                     mappingData = null;
+
                     document.getElementById('mappingFile').value = '';
+
                     document.getElementById('mappingItem').classList.remove('has-file');
+
                     document.getElementById('mappingFilename').textContent = '';
+
                     break;
+
                 case 'keywords':
+
                     keywordsData = null;
+
                     document.getElementById('keywordsFile').value = '';
+
                     document.getElementById('keywordsItem').classList.remove('has-file');
+
                     document.getElementById('keywordsFilename').textContent = '';
+
                     break;
+
                 case 'rules':
+
                     rules = [];
+
                     document.getElementById('rulesFile').value = '';
+
                     document.getElementById('rulesItem').classList.remove('has-file');
+
                     document.getElementById('rulesFilename').textContent = '';
+
                     showRulesPreview();
+
                     break;
+
             }
+
             cleanedResult = null;
+
             tagResult = null;
+
             keywordTagResult = null;
+
             document.getElementById('exportBtn').disabled = true;
+
             updateMode();
+
         }
+
+
 
         function updateMode() {
+
             const hasXiyou = xiyouFiles.length > 0 && mappingData !== null;
+
             const hasKeywords = keywordsData !== null;
+
             const hasRules = rules.length > 0;
 
+
+
             const startBtn = document.getElementById('startBtn');
+
             const modeText = document.getElementById('modeText');
+
             const statusDot = document.getElementById('statusDot');
 
+
+
             if (hasXiyou && hasKeywords && hasRules) {
+
                 modeText.innerHTML = '模式：<span>西柚数据清洗打标 + 关键词单独打标</span>';
+
                 startBtn.disabled = false;
+
                 statusDot.className = 'status-dot status-ready';
+
             } else if (hasXiyou && hasRules) {
+
                 modeText.innerHTML = '模式：<span>西柚数据清洗打标</span>';
+
                 startBtn.disabled = false;
+
                 statusDot.className = 'status-dot status-ready';
+
             } else if (hasKeywords && hasRules) {
+
                 modeText.innerHTML = '模式：<span>关键词单独打标</span>';
+
                 startBtn.disabled = false;
+
                 statusDot.className = 'status-dot status-ready';
+
             } else {
+
                 modeText.textContent = '请选择要执行的操作';
+
                 startBtn.disabled = true;
+
                 statusDot.className = 'status-dot status-ready';
+
             }
+
         }
+
+
 
         function showRulesPreview() {
+
             const tbody = document.getElementById('rulesTable').querySelector('tbody');
+
             const info = document.getElementById('rulesInfo');
 
+
+
             if (rules.length === 0) {
+
                 const thead = document.getElementById('rulesTable').querySelector('thead tr');
+
                 thead.innerHTML = `<th>优先级</th><th>标签名称</th><th>匹配模式</th><th>关键词</th><th>否定关键词</th><th>忽略大小写</th><th>输出值</th><th>分类</th>`;
+
                 tbody.innerHTML = `
+
                     <tr>
+
                         <td colspan="8" class="empty-state">
+
                             <div class="empty-icon">📋</div>
+
                             <div class="empty-title">暂无规则</div>
+
                             <div class="empty-desc">请上传打标规则表或生成模板</div>
+
                         </td>
+
                     </tr>
+
                 `;
+
                 info.textContent = '未加载规则';
+
                 return;
+
             }
+
+
 
             const tagNames = [...new Set(rules.map(r => r.tagName))];
+
             let maxGv = Math.max(...rules.map(r => r.groupValues.length), 0);
+
             if (maxGv < 1) maxGv = 1;
+
             const groupColNames = [];
+
             for (let i = 0; i < maxGv; i++) {
+
                 groupColNames.push(i === 0 ? '分组值' : `分组值${i + 1}`);
+
             }
+
             const baseCols = 8;
+
             const totalCols = baseCols + groupColNames.length;
+
             info.textContent = `共 ${rules.length} 条规则，输出 ${tagNames.length} 列${maxGv > 0 ? '，' + maxGv + '级分组' : ''}`;
 
+
+
             // 更新表头
+
             const thead = document.getElementById('rulesTable').querySelector('thead tr');
+
             let headerHtml = `<th>优先级</th><th>标签名称</th><th>匹配模式</th><th>关键词</th><th>否定关键词</th><th>忽略大小写</th><th>输出值</th><th>分类</th>`;
+
             for (const gc of groupColNames) {
+
                 headerHtml += `<th>${gc}</th>`;
+
             }
+
             thead.innerHTML = headerHtml;
 
+
+
             tbody.innerHTML = rules.map((r, i) => {
+
                 let gvCells = '';
+
                 for (let gi = 0; gi < groupColNames.length; gi++) {
+
                     const val = gi < r.groupValues.length && r.groupValues[gi] ? r.groupValues[gi] : '-';
+
                     gvCells += `<td>${val}</td>`;
+
                 }
+
                 return `
+
                 <tr>
+
                     <td>${r.priority}</td>
+
                     <td>${r.tagName}</td>
+
                     <td>${r.mode}</td>
+
                     <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${r.keywords.join(', ')}</td>
+
                     <td>${r.negKeywords.length > 0 ? r.negKeywords.join(', ') : '-'}</td>
+
                     <td>${r.ignoreCase ? '是' : '否'}</td>
+
                     <td>${r.outputValue || '-'}</td>
+
                     <td>${r.category || '-'}</td>
+
                     ${gvCells}
+
                 </tr>
+
             `}).join('');
+
         }
+
+
 
         async function startProcessing() {
+
             const hasXiyou = xiyouFiles.length > 0 && mappingData !== null;
+
             const hasKeywords = keywordsData !== null;
 
+
+
             document.getElementById('loadingOverlay').style.display = 'flex';
+
             document.getElementById('loadingText').textContent = '正在处理...';
 
+
+
             try {
+
                 cleanedResult = null;
+
                 tagResult = null;
+
                 keywordTagResult = null;
 
+
+
                 if (hasXiyou) {
+
                     document.getElementById('loadingText').textContent = '正在读取西柚数据...';
+
                     const rawData = await loadXiyouData(xiyouFiles);
+
                     
+
                     document.getElementById('loadingText').textContent = '正在清洗数据...';
+
                     const cleaned = cleanXiyouData(rawData, mappingData);
+
                     
+
                     document.getElementById('loadingText').textContent = '正在打标...';
+
                     const taggedResult = applyTagsForXiyou(cleaned, rules);
+
                     
+
                     cleanedResult = taggedResult.data;
+
                     tagResult = createTagSheet(taggedResult.data, taggedResult.groupCols);
+
                 }
+
+
 
                 if (hasKeywords) {
+
                     document.getElementById('loadingText').textContent = '正在处理关键词打标...';
+
                     keywordTagResult = applyTagsToKeywords(keywordsData, rules);
+
                 }
 
+
+
                 document.getElementById('loadingOverlay').style.display = 'none';
+
                 document.getElementById('statusDot').className = 'status-dot status-success';
+
                 document.getElementById('exportBtn').disabled = false;
+
                 showResultPreview();
 
+
+
                 switchTab(hasXiyou ? 'xiyou' : 'keywords');
+
             } catch (err) {
+
                 document.getElementById('loadingOverlay').style.display = 'none';
+
                 document.getElementById('statusDot').className = 'status-dot status-error';
+
                 alert('处理失败：' + err.message);
+
             }
+
         }
+
+
 
         async function loadXiyouData(files) {
+
             const allData = [];
+
             for (const file of files) {
+
                 const data = await new Promise((resolve) => {
+
                     readExcel(file, (rows) => resolve(rows));
+
                 });
+
                 
-                const match = file.name.match(/关键词反查结果_([A-Za-z]{2})_([A-Z0-9]{10})_(.*)\.xlsx/);
+
+                const match = file.name.match(/关键词反查结果_([A-Za-z]{2})_([A-Z0-9]{10})_(.*)\.xlsx?$/);
+
                 const site = match ? match[1] : '';
+
                 const asin = match ? match[2] : '';
+
                 const period = match ? match[3] : '';
 
+
+
                 for (const row of data) {
+
                     row['站点'] = site;
+
                     row['asin'] = asin;
+
                     row['周期'] = period;
+
                     allData.push(row);
+
                 }
+
             }
+
             return allData;
+
         }
+
+
 
         function cleanXiyouData(rawData, mappingData) {
+
             const result = [...rawData];
 
+
+
             for (const row of result) {
+
                 for (const [oldName, newName] of [
+
                     ['抓取时间.1', '抓取时间1'],
+
                     ['CPC建议竞价(£)', 'CPC建议竞价($)'],
+
                     ['建议竞价范围(£)', '建议竞价范围($)'],
+
                 ]) {
+
                     if (row[oldName] !== undefined) {
+
                         row[newName] = row[oldName];
+
                         delete row[oldName];
+
                     }
+
                 }
+
+
 
                 row['asin'] = String(row['asin'] || '').trim();
+
             }
+
+
 
             for (const row of mappingData) {
+
                 row['ASIN'] = String(row['ASIN'] || '').trim();
+
             }
 
+
+
             for (const row of result) {
+
                 const asin = row['asin'];
+
                 const mapping = mappingData.find(m => m['ASIN'] === asin);
+
                 if (mapping) {
+
                     for (const col of ['品牌', '产品系列', '机型', '细分']) {
+
                         row[col] = mapping[col] || '';
+
                     }
+
                 } else {
+
                     for (const col of ['品牌', '产品系列', '机型', '细分']) {
+
                         row[col] = row[col] || '';
+
                     }
+
                 }
+
             }
+
+
 
             const kwCol = '关键词 (数据来源于西柚找词)';
+
             const seenKws = new Set();
-            for (const row of result) {
-                const kw = row[kwCol];
-                if (kw && !seenKws.has(kw)) {
-                    seenKws.add(kw);
-                    row['周搜索量去重'] = row['周平均搜索量'] || '';
-                } else {
-                    row['周搜索量去重'] = '';
-                }
-            }
 
             for (const row of result) {
-                for (const col of TARGET_COLUMNS) {
-                    if (row[col] === undefined) {
-                        row[col] = '';
-                    }
+
+                const kw = row[kwCol];
+
+                if (kw && !seenKws.has(kw)) {
+
+                    seenKws.add(kw);
+
+                    row['周搜索量去重'] = row['周平均搜索量'] || '';
+
+                } else {
+
+                    row['周搜索量去重'] = '';
+
                 }
+
             }
+
+
+
+            for (const row of result) {
+
+                for (const col of TARGET_COLUMNS) {
+
+                    if (row[col] === undefined) {
+
+                        row[col] = '';
+
+                    }
+
+                }
+
+            }
+
+
 
             return result.map(row => {
+
                 const newRow = {};
+
                 for (const col of TARGET_COLUMNS) {
+
                     newRow[col] = row[col] || '';
+
                 }
+
                 return newRow;
+
             });
+
         }
 
+
+
         function applyTagsForXiyou(df, rules) {
+
             const result = df.map(row => ({ ...row }));
+
             
+
             const tagOrder = [...new Set(rules.map(r => r.tagName))];
+
             const tagGroups = {};
+
             for (const r of rules) {
+
                 if (!tagGroups[r.tagName]) tagGroups[r.tagName] = [];
+
                 tagGroups[r.tagName].push(r);
+
             }
 
+
+
             const hasCategory = rules.some(r => r.category && r.categoryPriority < 9999);
+
             let maxGroupLevel = 0;
+
             if (hasCategory) {
+
                 for (const r of rules) {
+
                     if (r.category && r.categoryPriority < 9999) {
+
                         maxGroupLevel = Math.max(maxGroupLevel, r.groupValues.length);
+
                     }
+
                 }
+
                 if (maxGroupLevel === 0) maxGroupLevel = 1;
+
             }
+
+
 
             const groupCols = hasCategory ? Array.from({ length: maxGroupLevel }, (_, i) => `分组${i + 1}`) : [];
 
+
+
             for (const row of result) {
+
                 row['分类'] = '0';
+
                 for (const gc of groupCols) {
+
                     row[gc] = '';
+
                 }
+
             }
+
+
 
             for (const tagName of tagOrder) {
+
                 const outCol = TAG_OUTPUT_COLUMN[tagName];
+
                 if (outCol) {
+
                     for (const row of result) {
+
                         if (row[outCol] === undefined) row[outCol] = '0';
+
                     }
+
                 }
+
             }
 
+
+
             for (const row of result) {
+
                 const text = row['关键词 (数据来源于西柚找词)'] || '';
+
                 const hitRules = [];
 
+
+
                 for (const outName of tagOrder) {
+
                     const groupRules = tagGroups[outName];
+
                     for (const rule of groupRules) {
+
                         const m = matchRule(rule, text);
+
                         if (m) {
+
                             const outCol = TAG_OUTPUT_COLUMN[outName];
+
                             if (outCol) {
+
                                 row[outCol] = m.cellValue;
+
                             }
+
                             hitRules.push({ rule, cellValue: m.cellValue, matchedKw: m.matchedRaw });
+
                             break;
+
                         }
+
                     }
+
                 }
+
+
 
                 if (hitRules.length > 0) {
+
                     const catCandidates = hitRules.filter(h => h.rule.category && h.rule.categoryPriority < 9999);
+
                     if (catCandidates.length > 0) {
+
                         catCandidates.sort((a, b) => a.rule.categoryPriority - b.rule.categoryPriority || b.matchedKw.length - a.matchedKw.length);
+
                         const winner = catCandidates[0];
+
                         const catName = winner.rule.category;
+
+
 
                         for (let level = 0; level < groupCols.length; level++) {
+
                             const gc = groupCols[level];
+
                             if (level < winner.rule.groupValues.length && winner.rule.groupValues[level]) {
+
                                 row[gc] = `${catName}-${winner.rule.groupValues[level]}`;
+
                             } else if (level === 0) {
+
                                 const label = winner.cellValue || winner.matchedKw;
+
                                 row[gc] = `${catName}_${label}`;
+
                             }
+
                         }
+
+
 
                         if (winner.rule.groupValues.length > 0 && winner.rule.groupValues[0]) {
+
                             row['分类'] = `${catName}-${winner.rule.groupValues[0]}`;
+
                         } else if (catName === '竞品词') {
+
                             row['分类'] = `${catName}-${winner.cellValue || winner.matchedKw}`;
+
                         } else {
+
                             row['分类'] = catName;
+
                         }
+
                     } else {
+
                         row['分类'] = '无机型词';
+
                         for (const gc of groupCols) {
+
                             row[gc] = '';
+
                         }
+
                     }
+
                 } else {
+
                     row['分类'] = '无机型词';
+
                     for (const gc of groupCols) {
+
                         row[gc] = '';
+
                     }
+
                 }
+
             }
+
+
 
             return { data: result, groupCols: groupCols };
+
         }
+
+
 
         function createTagSheet(cleanedData, groupCols) {
+
             const kwCol = '关键词 (数据来源于西柚找词)';
+
             const seen = new Set();
+
             const uniqueRows = [];
+
             
+
             for (const row of cleanedData) {
+
                 if (!seen.has(row[kwCol])) {
+
                     seen.add(row[kwCol]);
+
                     uniqueRows.push(row);
+
                 }
+
             }
+
+
 
             uniqueRows.sort((a, b) => {
+
                 const valA = parseFloat(a['周平均搜索量']) || 0;
+
                 const valB = parseFloat(b['周平均搜索量']) || 0;
+
                 return valB - valA;
+
             });
+
+
 
             return uniqueRows.map(row => {
+
                 const newRow = {
+
                     '关键词': row[kwCol],
+
                     '周搜索量去重': row['周搜索量去重'] || '',
+
                     '分类': row['分类'] || ''
+
                 };
+
                 if (groupCols) {
+
                     for (const gc of groupCols) {
+
                         newRow[gc] = row[gc] || '';
+
                     }
+
                 }
+
                 for (const col of FINAL_TAG_COLUMNS) {
+
                     if (col !== '分类') {
+
                         newRow[col] = row[col] || '';
+
                     }
+
                 }
+
                 return newRow;
+
             });
+
         }
 
+
+
         // ============================================================
+
         // 核心修复点：保留列顺序逻辑，确保"关键词"后面紧跟"大分类"和"分组1"
+
         // ============================================================
+
         function applyTagsToKeywords(keywordsData, rules) {
+
             const result = keywordsData.map(row => ({ ...row }));
+
             
+
             const hasCategory = rules.some(r => r.category && r.categoryPriority < 9999);
+
             const tagOrder = [...new Set(rules.map(r => r.tagName))];
+
             const tagGroups = {};
+
             
+
             for (const r of rules) {
+
                 if (!tagGroups[r.tagName]) tagGroups[r.tagName] = [];
+
                 tagGroups[r.tagName].push(r);
+
             }
+
+
 
             let maxGroupLevel = 0;
+
             if (hasCategory) {
+
                 for (const r of rules) {
+
                     if (r.category && r.categoryPriority < 9999) {
+
                         maxGroupLevel = Math.max(maxGroupLevel, r.groupValues.length);
+
                     }
+
                 }
+
                 if (maxGroupLevel === 0) maxGroupLevel = 1;
+
             }
+
+
 
             const RESERVED_SUMMARY = new Set(['大分类', 'KW/ASIN']);
+
             const overriddenSummary = new Set();
+
             if (hasCategory) {
+
                 for (const tn of tagOrder) {
+
                     if (RESERVED_SUMMARY.has(tn)) overriddenSummary.add(tn);
+
                 }
+
             }
+
+
 
             const catCol = overriddenSummary.has('大分类') ? null : '大分类';
+
             const kwTypeCol = overriddenSummary.has('KW/ASIN') ? null : 'KW/ASIN';
+
             const groupCols = Array.from({ length: maxGroupLevel }, (_, i) => `分组${i + 1}`);
 
-            for (const row of result) {
-                for (const tc of tagOrder) {
-                    row[tc] = '';
-                }
-                if (hasCategory) {
-                    if (catCol) row[catCol] = '';
-                    if (kwTypeCol) row[kwTypeCol] = '';
-                    for (const gc of groupCols) {
-                        row[gc] = '';
-                    }
-                }
-            }
+
 
             for (const row of result) {
+
+                for (const tc of tagOrder) {
+
+                    row[tc] = '';
+
+                }
+
+                if (hasCategory) {
+
+                    if (catCol) row[catCol] = '';
+
+                    if (kwTypeCol) row[kwTypeCol] = '';
+
+                    for (const gc of groupCols) {
+
+                        row[gc] = '';
+
+                    }
+
+                }
+
+            }
+
+
+
+            for (const row of result) {
+
                 const text = row['关键词'] || '';
+
                 const hitRules = [];
 
+
+
                 for (const outName of tagOrder) {
+
                     const groupRules = tagGroups[outName];
+
                     for (const rule of groupRules) {
+
                         const m = matchRule(rule, text);
+
                         if (m) {
+
                             row[outName] = m.cellValue;
+
                             hitRules.push({ rule, cellValue: m.cellValue, matchedKw: m.matchedRaw });
+
                             break;
+
                         }
+
                     }
+
                 }
+
+
 
                 if (hasCategory && hitRules.length > 0) {
+
                     const catCandidates = hitRules.filter(h => h.rule.category && h.rule.categoryPriority < 9999);
+
                     if (catCandidates.length > 0) {
+
                         catCandidates.sort((a, b) => a.rule.categoryPriority - b.rule.categoryPriority || b.matchedKw.length - a.matchedKw.length);
+
                         const winner = catCandidates[0];
+
                         const catName = winner.rule.category;
+
                         const isAsin = catName.toUpperCase() === 'ASIN' || winner.rule.tagName.toUpperCase() === 'ASIN';
 
+
+
                         if (kwTypeCol) row[kwTypeCol] = isAsin ? 'ASIN' : 'KW';
+
                         if (catCol) row[catCol] = catName;
 
+
+
                         if (isAsin) {
+
                             for (const gc of groupCols) {
+
                                 row[gc] = 'ASIN';
+
                             }
+
                         } else {
+
                             for (let level = 0; level < groupCols.length; level++) {
+
                                 const gc = groupCols[level];
+
                                 if (level < winner.rule.groupValues.length && winner.rule.groupValues[level]) {
+
                                     row[gc] = `${catName}-${winner.rule.groupValues[level]}`;
+
                                 } else if (level === 0) {
+
                                     const label = winner.cellValue || winner.matchedKw;
+
                                     row[gc] = `${catName}_${label}`;
+
                                 }
+
                             }
+
                         }
+
                     }
+
                 }
+
             }
+
+
 
             // 列顺序处理（与Python版本一致）
+
             const finalResult = result.map(row => {
+
                 const newRow = {};
+
                 // 顺序：关键词 → 大分类 → 分组列 → KW/ASIN → 剩余标签列
+
                 newRow['关键词'] = row['关键词'] || '';
+
                 if (hasCategory) {
+
                     if (catCol && row.hasOwnProperty(catCol)) newRow[catCol] = row[catCol] || '';
+
                     else if (overriddenSummary.has('大分类') && row.hasOwnProperty('大分类')) newRow['大分类'] = row['大分类'] || '';
+
                     for (const gc of groupCols) {
+
                         if (row.hasOwnProperty(gc)) newRow[gc] = row[gc] || '';
+
                     }
+
                     if (kwTypeCol && row.hasOwnProperty(kwTypeCol)) newRow[kwTypeCol] = row[kwTypeCol] || '';
+
                     else if (overriddenSummary.has('KW/ASIN') && row.hasOwnProperty('KW/ASIN')) newRow['KW/ASIN'] = row['KW/ASIN'] || '';
+
                 }
+
                 for (const tag of tagOrder) {
+
                     if (overriddenSummary.has(tag)) continue;
+
                     if (row.hasOwnProperty(tag)) newRow[tag] = row[tag] || '';
+
                 }
+
                 return newRow;
+
             });
+
             return finalResult;
+
         }
+
+
 
         function showResultPreview() {
+
             if (cleanedResult) {
+
                 showTable('xiyouTable', cleanedResult.slice(0, 500));
+
                 document.getElementById('xiyouInfo').textContent = 
+
                     `西柚数据源：${cleanedResult.length}行 × ${Object.keys(cleanedResult[0]).length}列`;
+
             }
 
+
+
             if (keywordTagResult) {
+
                 showTable('keywordsTable', keywordTagResult.slice(0, 500));
+
                 document.getElementById('keywordsInfo').textContent = 
+
                     `关键词打标：${keywordTagResult.length}行 × ${Object.keys(keywordTagResult[0]).length}列`;
+
             }
+
         }
+
+
 
         function showTable(tableId, data) {
+
             const table = document.getElementById(tableId);
+
             if (!data || data.length === 0) {
+
                 table.innerHTML = `
+
                     <tbody>
+
                         <tr>
+
                             <td colspan="4" class="empty-state">
+
                                 <div class="empty-icon">📊</div>
+
                                 <div class="empty-title">暂无数据</div>
+
                             </td>
+
                         </tr>
+
                     </tbody>
+
                 `;
+
                 return;
+
             }
+
+
 
             const headers = Object.keys(data[0]);
+
             table.innerHTML = `
+
                 <thead>
+
                     <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+
                 </thead>
+
                 <tbody>
+
                     ${data.map((row, i) => `
+
                         <tr>
+
                             ${headers.map(h => {
+
                                 const val = row[h] || '';
+
                                 if (['集合', '分类', '品牌词', '竞品品牌', '机型'].includes(h)) {
+
                                     return `<td><span class="tag-cell">${val || '-'}</span></td>`;
+
                                 }
+
                                 return `<td>${val || '-'}</td>`;
+
                             }).join('')}
+
                         </tr>
+
                     `).join('')}
+
                 </tbody>
+
             `;
+
         }
+
+
 
         function switchTab(tab) {
+
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
             document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+
             document.getElementById(`tab-${tab}`).classList.add('active');
+
         }
+
+
 
         function exportResults() {
+
             const wb = XLSX.utils.book_new();
+
+
 
             if (cleanedResult) {
+
                 const ws1 = XLSX.utils.json_to_sheet(cleanedResult);
+
                 XLSX.utils.book_append_sheet(wb, ws1, '西柚数据源');
+
             }
+
+
 
             if (tagResult) {
+
                 const ws2 = XLSX.utils.json_to_sheet(tagResult);
+
                 XLSX.utils.book_append_sheet(wb, ws2, '打标');
+
             }
+
+
 
             if (keywordTagResult) {
+
                 const ws3 = XLSX.utils.json_to_sheet(keywordTagResult);
+
                 XLSX.utils.book_append_sheet(wb, ws3, '关键词打标');
+
             }
 
+
+
             XLSX.writeFile(wb, '数据清洗打标结果.xlsx');
+
         }
+
+
 
         function showTemplateModal() {
+
             const template = [
+
                 { '规则ID': 1, '标签名称': 'KW/ASIN', '匹配模式': '开头是', '关键词': 'B0', '否定关键词': '', '忽略大小写': '否', '优先级': 1, '输出值': '', '分类': 'ASIN', '分类优先级': 1, '分组值': '' },
+
                 { '规则ID': 2, '标签名称': '品牌词', '匹配模式': '包含任一', '关键词': 'ESR,halolock', '否定关键词': '', '忽略大小写': '是', '优先级': 2, '输出值': '', '分类': '品牌词', '分类优先级': 2, '分组值': '' },
+
                 { '规则ID': 3, '标签名称': '竞品词', '匹配模式': '包含任一', '关键词': 'magic john,miracase,otterbox', '否定关键词': '', '忽略大小写': '是', '优先级': 3, '输出值': '', '分类': '竞品词', '分类优先级': 3, '分组值': '' },
+
                 { '规则ID': 4, '标签名称': '机型', '匹配模式': '包含全部', '关键词': 'pro,max,17', '否定关键词': '', '忽略大小写': '是', '优先级': 6, '输出值': '17PM', '分类': '机型词', '分类优先级': 40, '分组值': '' },
+
                 { '规则ID': 5, '标签名称': 'case/cover', '匹配模式': '包含全部', '关键词': 'case', '否定关键词': '', '忽略大小写': '是', '优先级': 18, '输出值': 'case', '分类': '大词', '分类优先级': 19, '分组值': '壳' },
+
                 { '规则ID': 6, '标签名称': 'screen protector', '匹配模式': '包含全部', '关键词': 'screen,protector', '否定关键词': 'camera lens', '忽略大小写': '是', '优先级': 19, '输出值': 'screen protector', '分类': '大词', '分类优先级': 30, '分组值': '膜' },
+
             ];
+
+
 
             document.getElementById('templatePreview').innerHTML = `
+
                 <div class="template-row header">
+
                     <div>优先级</div>
+
                     <div>标签名称</div>
+
                     <div>匹配模式</div>
+
                     <div>关键词</div>
+
                 </div>
+
                 ${template.map(r => `
+
                     <div class="template-row">
+
                         <div>${r['优先级']}</div>
+
                         <div>${r['标签名称']}</div>
+
                         <div>${r['匹配模式']}</div>
+
                         <div>${r['关键词']}</div>
+
                     </div>
+
                 `).join('')}
+
             `;
 
+
+
             document.getElementById('templateModal').classList.add('show');
+
         }
+
+
 
         function closeTemplateModal() {
+
             document.getElementById('templateModal').classList.remove('show');
+
         }
+
+
 
         function downloadTemplate() {
+
             const template = [
+
                 { '规则ID': 1, '标签名称': 'KW/ASIN', '匹配模式': '开头是', '关键词': 'B0', '否定关键词': '', '忽略大小写': '否', '优先级': 1, '输出值': '', '分类': 'ASIN', '分类优先级': 1, '分组值': '' },
+
                 { '规则ID': 2, '标签名称': '品牌词', '匹配模式': '包含任一', '关键词': 'ESR,halolock', '否定关键词': '', '忽略大小写': '是', '优先级': 2, '输出值': '', '分类': '品牌词', '分类优先级': 2, '分组值': '' },
+
                 { '规则ID': 3, '标签名称': '竞品词', '匹配模式': '包含任一', '关键词': 'magic john,miracase,otterbox,belkin,jetech,spigen,tech21,torras,tauri,tocol', '否定关键词': '', '忽略大小写': '是', '优先级': 3, '输出值': '', '分类': '竞品词', '分类优先级': 3, '分组值': '' },
+
                 { '规则ID': 4, '标签名称': '机型', '匹配模式': '包含全部', '关键词': 'pro,max,17', '否定关键词': '', '忽略大小写': '是', '优先级': 6, '输出值': '17PM', '分类': '机型词', '分类优先级': 40, '分组值': '' },
+
                 { '规则ID': 5, '标签名称': 'case/cover', '匹配模式': '包含全部', '关键词': 'case', '否定关键词': '', '忽略大小写': '是', '优先级': 18, '输出值': 'case', '分类': '大词', '分类优先级': 19, '分组值': '壳' },
+
                 { '规则ID': 6, '标签名称': 'screen protector', '匹配模式': '包含全部', '关键词': 'screen,protector', '否定关键词': 'camera lens,lens protector', '忽略大小写': '是', '优先级': 19, '输出值': 'screen protector', '分类': '大词', '分类优先级': 30, '分组值': '膜' },
+
                 { '规则ID': 7, '标签名称': 'tempered glass', '匹配模式': '包含全部', '关键词': 'tempered,glass', '否定关键词': 'screen protector,camera,lens', '忽略大小写': '是', '优先级': 22, '输出值': 'glass', '分类': '小词', '分类优先级': 20, '分组值': '膜' },
+
                 { '规则ID': 8, '标签名称': 'camera lens', '匹配模式': '包含全部', '关键词': 'camera lens', '否定关键词': '', '忽略大小写': '是', '优先级': 24, '输出值': 'camera', '分类': '小词', '分类优先级': 15, '分组值': '镜头膜' },
+
                 { '规则ID': 9, '标签名称': 'privacy', '匹配模式': '包含全部', '关键词': 'privacy', '否定关键词': '', '忽略大小写': '是', '优先级': 27, '输出值': 'privacy', '分类': '小词', '分类优先级': 15, '分组值': '防窥膜' },
+
                 { '规则ID': 10, '标签名称': '磁吸', '匹配模式': '正则', '关键词': 'magsafe', '否定关键词': '', '忽略大小写': '是', '优先级': 32, '输出值': 'magsafe', '分类': '小词', '分类优先级': 16, '分组值': '磁吸' },
+
                 { '规则ID': 11, '标签名称': '透明', '匹配模式': '包含全部', '关键词': 'clear', '否定关键词': '', '忽略大小写': '是', '优先级': 36, '输出值': '', '分类': '小词', '分类优先级': 17, '分组值': '透明' },
+
                 { '规则ID': 12, '标签名称': '硅胶', '匹配模式': '包含全部', '关键词': 'silicone', '否定关键词': '', '忽略大小写': '是', '优先级': 40, '输出值': '', '分类': '小词', '分类优先级': 18, '分组值': '硅胶' },
+
                 { '规则ID': 13, '标签名称': '支架', '匹配模式': '包含全部', '关键词': 'stand', '否定关键词': '', '忽略大小写': '是', '优先级': 43, '输出值': '', '分类': '小词', '分类优先级': 15, '分组值': '支架' },
+
             ];
+
+
 
             const help = [
+
                 { '列名': '规则ID', '说明': '序号，不影响结果' },
+
                 { '列名': '标签名称', '说明': '输出列名。相同标签名的规则会输出到同一列' },
+
                 { '列名': '匹配模式', '说明': '包含任一/包含全部/精确等于/开头是/结尾是/正则' },
+
                 { '列名': '关键词', '说明': '要匹配的词，多个用英文逗号分隔' },
+
                 { '列名': '否定关键词', '说明': '包含这些词则不命中此规则；可选' },
+
                 { '列名': '忽略大小写', '说明': '是/否；英文一般填是' },
+
                 { '列名': '优先级', '说明': '数字越小越优先；同标签名下决定哪条规则胜出' },
+
                 { '列名': '输出值', '说明': '可选，命中时填入单元格的自定义值' },
+
                 { '列名': '分类', '说明': '可选，大分类名' },
+
                 { '列名': '分类优先级', '说明': '可选，决定集合列取哪个分类' },
+
                 { '列名': '分组值', '说明': '可选，分组名' },
+
             ];
 
+
+
             const wb = XLSX.utils.book_new();
+
             const ws1 = XLSX.utils.json_to_sheet(template);
+
             const ws2 = XLSX.utils.json_to_sheet(help);
+
             XLSX.utils.book_append_sheet(wb, ws1, '打标规则');
+
             XLSX.utils.book_append_sheet(wb, ws2, '使用说明');
+
             XLSX.writeFile(wb, '打标规则模板.xlsx');
+
             closeTemplateModal();
+
         }
+
     </script>
+
 </body>
+
 </html>
+
